@@ -1,822 +1,2034 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Create your secure Bean ID and access Signaturesi services.">
-  <meta name="theme-color" content="#171717">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Create your secure Bean ID and access NEO.">
+    <meta name="theme-color" content="#ffffff">
+    <title>Bean ID — Signaturesi</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/favicon.png">
 
-  <title>Bean ID — Signaturesi Account</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg-main: #ffffff;
+            --bg-soft: #f7f7f8;
+            --bg-hover: #eeeeef;
+            --surface: #ffffff;
+            --text-primary: #0d0d0d;
+            --text-secondary: #6e6e73;
+            --text-tertiary: #929299;
+            --border: #e5e5e8;
+            --accent: #111113;
+            --accent-text: #ffffff;
+            --danger: #dc2626;
+            --success: #16865c;
+            --checking: #6e6e73;
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 18px;
+            --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.07), 0 2px 10px rgba(0, 0, 0, 0.025);
+        }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="apple-touch-icon" href="favicon.png">
+        body.dark-mode {
+            color-scheme: dark;
+            --bg-main: #171717;
+            --bg-soft: #202020;
+            --bg-hover: #2a2a2a;
+            --surface: #1d1d1d;
+            --text-primary: #f2f2f2;
+            --text-secondary: #a0a0a6;
+            --text-tertiary: #727278;
+            --border: #303033;
+            --accent: #f2f2f2;
+            --accent-text: #151515;
+            --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.3), 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
 
-  <!-- External Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  <style>
-    :root {
-      color-scheme: dark light;
-      --bg-main: #0d0d0d;
-      --bg-soft: #171717;
-      --bg-hover: #222222;
-      --surface: #171717;
-      --text-primary: #ececec;
-      --text-secondary: #8e8e93;
-      --text-tertiary: #636366;
-      --border: #2a2a2e;
-      --accent: #ffffff;
-      --accent-text: #0d0d0d;
-      --danger: #ef4444;
-      --success: #10b981;
-      --checking: #8e8e93;
-      --focus-ring: #3b82f6;
-      --radius-small: 8px;
-      --radius-medium: 12px;
-      --radius-large: 20px;
-      --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
+        html,
+        body {
+            min-height: 100%;
+        }
 
-    body.light-mode {
-      color-scheme: light;
-      --bg-main: #ffffff;
-      --bg-soft: #f7f7f8;
-      --bg-hover: #eeeeef;
-      --surface: #ffffff;
-      --text-primary: #0d0d0d;
-      --text-secondary: #6e6e73;
-      --text-tertiary: #929299;
-      --border: #e5e5e8;
-      --accent: #111113;
-      --accent-text: #ffffff;
-      --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.07), 0 2px 10px rgba(0, 0, 0, 0.025);
-    }
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text-primary);
+            background: var(--bg-main);
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+        button,
+        input {
+            font: inherit;
+        }
 
-    html, body { min-height: 100%; }
+        button {
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-    body {
-      min-height: 100vh;
-      overflow-x: hidden;
-      color: var(--text-primary);
-      background: var(--bg-main);
-      display: flex;
-      flex-direction: column;
-    }
+        button:focus-visible,
+        a:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
 
-    button, input { font: inherit; }
-    button { -webkit-user-select: none; user-select: none; }
+        .auth-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: 58px 1fr;
+        }
 
-    .auth-shell {
-      min-height: 100vh;
-      display: grid;
-      grid-template-rows: 58px 1fr;
-    }
+        .topbar {
+            min-height: 58px;
+            padding: max(8px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-main);
+        }
 
-    .topbar {
-      min-height: 58px;
-      padding: max(8px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-main);
-    }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-primary);
-      text-decoration: none;
-    }
+        .brand-mark {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-soft);
+        }
 
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg-soft);
-      color: var(--text-primary);
-    }
+        .brand-mark::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--text-primary);
+            border-radius: 50%;
+        }
 
-    .brand-copy strong {
-      display: block;
-      font-size: 14px;
-      font-weight: 650;
-      line-height: 1.2;
-    }
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            right: 5px;
+            bottom: 5px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-primary);
+        }
 
-    .brand-copy small {
-      display: block;
-      margin-top: 1px;
-      color: var(--text-secondary);
-      font-size: 10px;
-      line-height: 1.2;
-    }
+        .brand-copy strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 650;
+            line-height: 1.2;
+            letter-spacing: -0.15px;
+        }
 
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .brand-copy small {
+            display: block;
+            margin-top: 1px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            line-height: 1.2;
+        }
 
-    .mode-link {
-      min-height: 34px;
-      padding: 0 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      background: transparent;
-      border: 0;
-      border-radius: var(--radius-small);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .mode-link:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .mode-link {
+            min-height: 34px;
+            padding: 0 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 0;
+            border-radius: var(--radius-small);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-    .theme-button {
-      width: 34px;
-      height: 34px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      background: transparent;
-      border: 0;
-      border-radius: 50%;
-      cursor: pointer;
-    }
+        .mode-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
 
-    .theme-button:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .theme-button {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
 
-    .auth-main {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(280px, 0.95fr) minmax(390px, 1.05fr);
-      align-items: center;
-      width: min(1080px, 100%);
-      margin: 0 auto;
-      padding: 34px max(24px, env(safe-area-inset-right)) max(34px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
-    }
+        .theme-button:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
 
-    .intro-panel { max-width: 440px; padding-right: 48px; }
-    .intro-label { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 18px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
-    .intro-label-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
-    .intro-title { max-width: 420px; font-size: clamp(34px, 4.5vw, 54px); font-weight: 700; line-height: 1.02; letter-spacing: -0.05em; }
-    .intro-description { max-width: 400px; margin-top: 20px; color: var(--text-secondary); font-size: 14.5px; line-height: 1.6; }
+        .theme-button svg {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
 
-    .identity-preview {
-      width: fit-content;
-      margin-top: 26px;
-      padding: 9px 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-primary);
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-    }
+        .theme-button .icon-sun {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
 
-    .identity-preview span:last-child { color: var(--text-secondary); font-weight: 500; }
-    .auth-area { display: flex; justify-content: flex-end; }
+        .theme-button .icon-moon {
+            opacity: 0;
+            transform: rotate(90deg);
+        }
 
-    .auth-card {
-      width: min(390px, 100%);
-      padding: 24px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-large);
-      box-shadow: var(--shadow-card);
-    }
+        body.dark-mode .theme-button .icon-sun {
+            opacity: 0;
+            transform: rotate(-90deg);
+        }
 
-    .card-topline { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-    .card-eyebrow { color: var(--text-secondary); font-size: 11px; font-weight: 650; letter-spacing: 0.02em; text-transform: uppercase; }
-    .step-indicator { display: flex; align-items: center; gap: 5px; }
-    .step-dot { width: 18px; height: 4px; border-radius: 10px; background: var(--border); transition: width 180ms ease, background 180ms ease; }
-    .step-dot.active { width: 28px; background: var(--text-primary); }
-    .step-dot.completed { background: var(--text-secondary); }
+        body.dark-mode .theme-button .icon-moon {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
 
-    .auth-title { font-size: 23px; font-weight: 700; line-height: 1.15; letter-spacing: -0.035em; }
-    .auth-subtitle { margin-top: 7px; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+        .auth-main {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(280px, 0.95fr) minmax(390px, 1.05fr);
+            align-items: center;
+            width: min(1080px, 100%);
+            margin: 0 auto;
+            padding: 34px max(24px, env(safe-area-inset-right)) max(34px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+        }
 
-    .step-panel { display: none; margin-top: 20px; }
-    .step-panel.active { display: block; animation: stepEnter 180ms ease; }
+        .intro-panel {
+            max-width: 440px;
+            padding-right: 48px;
+        }
 
-    @keyframes stepEnter {
-      from { opacity: 0; transform: translateX(8px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
+        .intro-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-    .field-group { margin-bottom: 14px; }
-    .field-label { display: block; margin-bottom: 7px; color: var(--text-primary); font-size: 12px; font-weight: 650; }
+        .intro-label-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+        }
 
-    .bean-id-field {
-      display: flex;
-      align-items: stretch;
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-medium);
-    }
+        .intro-title {
+            max-width: 420px;
+            font-size: clamp(36px, 5vw, 58px);
+            font-weight: 700;
+            line-height: 0.98;
+            letter-spacing: -0.06em;
+        }
 
-    .bean-id-field:focus-within { border-color: var(--text-primary); }
+        .intro-description {
+            max-width: 400px;
+            margin-top: 22px;
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
 
-    .bean-id-input {
-      min-width: 0; min-height: 44px; flex: 1; padding: 10px 4px 10px 13px;
-      color: var(--text-primary); background: transparent; border: none !important; outline: none !important; font-size: 14px;
-    }
+        .identity-preview {
+            width: fit-content;
+            margin-top: 28px;
+            padding: 9px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
 
-    .bean-suffix { min-height: 44px; padding: 0 13px 0 7px; display: flex; align-items: center; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+        .identity-preview span:last-child {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
 
-    .availability { min-height: 18px; margin: 8px 2px 0; display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
-    .availability:empty { display: none; }
-    .availability.success { color: var(--success); }
-    .availability.error { color: var(--danger); }
-    .availability.checking { color: var(--checking); }
-    .availability-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .auth-area {
+            display: flex;
+            justify-content: flex-end;
+        }
 
-    .input-wrapper { position: relative; }
+        .auth-card {
+            width: min(390px, 100%);
+            padding: 22px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow-card);
+        }
 
-    .auth-input {
-      width: 100%; min-height: 44px; padding: 10px 42px 10px 13px;
-      color: var(--text-primary); background: var(--bg-soft); border: 1px solid var(--border);
-      border-radius: var(--radius-medium); outline: none; font-size: 14px;
-    }
+        .card-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
 
-    .auth-input:focus { border-color: var(--text-primary); }
+        .card-eyebrow {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 650;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
 
-    .password-toggle {
-      position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
-      background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 6px;
-    }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    .review-box { padding: 16px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius-medium); }
-    .review-label { color: var(--text-secondary); font-size: 10px; font-weight: 650; text-transform: uppercase; }
-    .review-id { margin-top: 6px; color: var(--text-primary); font-size: 20px; font-weight: 700; }
-    .review-copy { margin-top: 8px; color: var(--text-secondary); font-size: 11.5px; line-height: 1.5; }
+        .step-dot {
+            width: 18px;
+            height: 4px;
+            border-radius: 10px;
+            background: var(--border);
+            transition: width 180ms ease, background 180ms ease;
+        }
 
-    .login-form { display: none; margin-top: 20px; }
-    .login-form.active { display: block; animation: stepEnter 180ms ease; }
+        .step-dot.active {
+            width: 28px;
+            background: var(--text-primary);
+        }
 
-    .message-box {
-      display: none; margin-top: 13px; padding: 10px 12px; border-radius: 10px; font-size: 12px; text-align: center; word-break: break-word;
-    }
-    .message-box.show { display: block; }
-    .message-box.error { color: var(--danger); background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.2); }
-    .message-box.success { color: var(--success); background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .step-dot.completed {
+            background: var(--text-secondary);
+        }
 
-    .card-actions { margin-top: 18px; display: flex; align-items: center; gap: 8px; }
+        .auth-title {
+            font-size: 23px;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.035em;
+        }
 
-    .primary-button, .secondary-button {
-      min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center;
-      gap: 8px; border-radius: 12px; font-size: 13.5px; font-weight: 650; cursor: pointer;
-    }
+        .auth-subtitle {
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
 
-    .primary-button { flex: 1; color: var(--accent-text); background: var(--accent); border: 1px solid var(--accent); }
-    .primary-button:hover:not(:disabled) { opacity: 0.9; }
-    .primary-button:disabled { opacity: 0.45; cursor: not-allowed; }
+        .step-panel {
+            display: none;
+            margin-top: 20px;
+        }
 
-    .secondary-button { color: var(--text-secondary); background: transparent; border: 1px solid transparent; }
-    .secondary-button:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .step-panel.active {
+            display: block;
+            animation: stepEnter 180ms ease;
+        }
 
-    .auth-footer { margin-top: 16px; color: var(--text-tertiary); font-size: 11px; text-align: center; }
+        @keyframes stepEnter {
+            from {
+                opacity: 0;
+                transform: translateX(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
-    @media (max-width: 760px) {
-      .auth-main { grid-template-columns: 1fr; padding-top: 24px; }
-      .intro-panel { max-width: 390px; padding-right: 0; margin: 0 auto 20px; }
-      .intro-title { font-size: 32px; }
-      .identity-preview { display: none; }
-      .auth-area { justify-content: center; }
-      .auth-card { width: min(390px, 100%); padding: 20px; }
-    }
-  </style>
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .bean-id-field {
+            display: flex;
+            align-items: stretch;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-medium);
+            transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+        }
+
+        .bean-id-field:focus-within {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(13, 13, 13, 0.08);
+            background: var(--surface);
+        }
+
+        body.dark-mode .bean-id-field:focus-within {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .bean-id-input,
+        .bean-id-input:focus,
+        .bean-id-input:focus-visible,
+        .bean-id-input:active {
+            min-width: 0;
+            min-height: 44px;
+            flex: 1;
+            padding: 10px 4px 10px 13px;
+            color: var(--text-primary);
+            background: transparent;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            font-size: 14px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .bean-id-input::placeholder,
+        .auth-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .bean-id-input:-webkit-autofill,
+        .bean-id-input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px var(--bg-soft) inset !important;
+            -webkit-text-fill-color: var(--text-primary) !important;
+            caret-color: var(--text-primary);
+        }
+
+        .bean-suffix {
+            min-height: 44px;
+            padding: 0 13px 0 7px;
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .field-note {
+            margin: 6px 2px 0;
+            color: var(--text-tertiary);
+            font-size: 10.5px;
+            line-height: 1.4;
+        }
+
+        .availability {
+            min-height: 18px;
+            margin: 8px 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .availability:empty {
+            display: none;
+        }
+
+        .availability.success {
+            color: var(--success);
+        }
+
+        .availability.error {
+            color: var(--danger);
+        }
+
+        .availability.checking {
+            color: var(--checking);
+        }
+
+        .availability-dot {
+            width: 6px;
+            height: 6px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .availability.checking .availability-dot {
+            animation: pulse 900ms ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 0.35;
+                transform: scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .auth-input {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 42px 10px 13px;
+            color: var(--text-primary);
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-medium);
+            outline: none;
+            font-size: 14px;
+            transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+        }
+
+        .auth-input:focus {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(13, 13, 13, 0.08);
+            background: var(--surface);
+        }
+
+        body.dark-mode .auth-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-input.no-icon {
+            padding-right: 13px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 7px;
+            width: 31px;
+            height: 31px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .password-toggle:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .password-toggle svg {
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            transition: opacity 150ms ease;
+        }
+
+        .password-toggle .eye-off {
+            opacity: 0;
+        }
+
+        .password-toggle.is-visible .eye {
+            opacity: 0;
+        }
+
+        .password-toggle.is-visible .eye-off {
+            opacity: 1;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .strength-bar {
+            height: 3px;
+            border-radius: 10px;
+            background: var(--border);
+        }
+
+        .strength-bar.active {
+            background: var(--text-primary);
+        }
+
+        .review-box {
+            padding: 15px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-medium);
+        }
+
+        .review-label {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 650;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .review-id {
+            margin-top: 6px;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            word-break: break-word;
+        }
+
+        .review-copy {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 11.5px;
+            line-height: 1.5;
+        }
+
+        .login-form {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .login-form.active {
+            display: block;
+            animation: stepEnter 180ms ease;
+        }
+
+        .message-box {
+            display: none;
+            margin-top: 13px;
+            padding: 9px 11px;
+            border-radius: 9px;
+            font-size: 11.5px;
+            line-height: 1.45;
+        }
+
+        .message-box.show {
+            display: block;
+        }
+
+        .message-box.error {
+            color: var(--danger);
+            background: rgba(220, 38, 38, 0.07);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .message-box.success {
+            color: var(--success);
+            background: rgba(22, 134, 92, 0.08);
+            border: 1px solid rgba(22, 134, 92, 0.16);
+        }
+
+        .card-actions {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .primary-button,
+        .secondary-button {
+            min-height: 42px;
+            padding: 0 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            flex: 1;
+            color: var(--accent-text);
+            background: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .primary-button:hover:not(:disabled) {
+            opacity: 0.88;
+        }
+
+        .primary-button:active:not(:disabled) {
+            transform: scale(0.985);
+        }
+
+        .primary-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .primary-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .secondary-button {
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .secondary-button:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .button-spinner {
+            width: 15px;
+            height: 15px;
+            display: none;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 700ms linear infinite;
+        }
+
+        body.dark-mode .button-spinner {
+            border-color: rgba(0, 0, 0, 0.25);
+            border-top-color: currentColor;
+        }
+
+        .primary-button.loading .button-spinner {
+            display: block;
+        }
+
+        .primary-button.loading .button-icon {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .auth-footer {
+            margin-top: 14px;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        .auth-footer button {
+            padding: 0;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 0;
+            font-size: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-footer button:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        .session-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+        }
+
+        .session-overlay.hidden {
+            display: none;
+        }
+
+        .session-spinner {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-top-color: var(--text-primary);
+            border-radius: 50%;
+            animation: spin 700ms linear infinite;
+        }
+
+        @media (max-width: 760px) {
+            .auth-main {
+                grid-template-columns: 1fr;
+                align-items: start;
+                padding-top: 28px;
+            }
+            .intro-panel {
+                max-width: 390px;
+                padding-right: 0;
+                margin: 0 auto 24px;
+            }
+            .intro-label {
+                margin-bottom: 12px;
+            }
+            .intro-title {
+                font-size: 32px;
+                line-height: 1.04;
+            }
+            .intro-description {
+                margin-top: 12px;
+                font-size: 13px;
+            }
+            .identity-preview {
+                display: none;
+            }
+            .auth-area {
+                justify-content: center;
+            }
+            .auth-card {
+                width: min(390px, 100%);
+                padding: 19px;
+                border-radius: 16px;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .auth-shell {
+                grid-template-rows: 54px 1fr;
+            }
+            .topbar {
+                min-height: 54px;
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+            .brand-copy small {
+                display: none;
+            }
+            .mode-link {
+                padding: 0 8px;
+            }
+            .auth-main {
+                padding: 24px 14px max(24px, env(safe-area-inset-bottom));
+            }
+            .intro-panel {
+                margin-bottom: 20px;
+            }
+            .intro-title {
+                font-size: 28px;
+            }
+            .intro-description {
+                max-width: 320px;
+            }
+            .auth-card {
+                padding: 17px;
+            }
+        }
+
+        @media (max-height: 700px) and (min-width: 761px) {
+            .auth-main {
+                padding-top: 20px;
+                padding-bottom: 20px;
+            }
+            .intro-title {
+                font-size: 44px;
+            }
+            .intro-description {
+                margin-top: 15px;
+            }
+            .identity-preview {
+                margin-top: 18px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Inline premium consistency layer */
+        :root {
+            --selection-bg: rgba(17, 17, 19, 0.9);
+            --selection-text: #fff;
+            --premium-ease: cubic-bezier(.2, .8, .2, 1);
+        }
+
+        ::selection {
+            background: var(--selection-bg);
+            color: var(--selection-text);
+        }
+        ::-moz-selection {
+            background: var(--selection-bg);
+            color: var(--selection-text);
+        }
+
+        html {
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+        button,
+        a,
+        input,
+        textarea,
+        select {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .footer {
+            position: relative;
+            overflow: hidden;
+        }
+        .footer::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
+            pointer-events: none;
+        }
+        .footer-main,
+        .footer-bottom {
+            position: relative;
+            z-index: 1;
+        }
+        .footer-column a,
+        .footer-meta a {
+            text-underline-offset: 4px;
+        }
+
+        .footer-language-trigger {
+            min-height: 38px;
+            padding: 0 14px !important;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 9px !important;
+            color: rgba(255, 255, 255, .86) !important;
+            background: rgba(255, 255, 255, .07) !important;
+            border: 1px solid rgba(255, 255, 255, .1) !important;
+            border-radius: 999px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+            transition: transform .22s var(--premium-ease), background .22s ease, border-color .22s ease !important;
+        }
+        .footer-language-trigger:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, .11) !important;
+            border-color: rgba(255, 255, 255, .16) !important;
+        }
+        .footer-language-trigger svg {
+            width: 15px;
+            height: 15px;
+            flex: 0 0 auto;
+        }
+        .footer-language-trigger .language-region {
+            color: rgba(255, 255, 255, .46);
+            font-weight: 500;
+        }
+
+        .language-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: grid;
+            place-items: end;
+            padding: 24px;
+            background: rgba(244, 244, 246, .54);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .22s ease, visibility .22s ease;
+        }
+        .language-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .language-dialog {
+            width: min(398px, calc(100vw - 32px));
+            max-height: min(714px, calc(100vh - 48px));
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            background: rgba(246, 246, 247, .92);
+            border: 1px solid rgba(17, 17, 19, .08);
+            border-radius: 20px;
+            box-shadow: 0 28px 90px rgba(17, 17, 19, .18), 0 2px 8px rgba(17, 17, 19, .06);
+            overflow: hidden;
+            transform: translateY(14px) scale(.985);
+            transition: transform .26s var(--premium-ease);
+        }
+        .language-overlay.is-open .language-dialog {
+            transform: translateY(0) scale(1);
+        }
+        .language-dialog-header {
+            min-height: 74px;
+            padding: 0 18px 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(17, 17, 19, .08);
+        }
+        .language-dialog-title {
+            font-size: 16px;
+            font-weight: 650;
+            letter-spacing: -.02em;
+        }
+        .language-close {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(17, 17, 19, .045);
+            cursor: pointer;
+            transition: background .2s ease, transform .2s ease;
+        }
+        .language-close:hover {
+            background: rgba(17, 17, 19, .08);
+            transform: rotate(2deg);
+        }
+        .language-close svg {
+            width: 18px;
+            height: 18px;
+        }
+        .language-list {
+            overflow: auto;
+            padding: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(17, 17, 19, .35) transparent;
+        }
+        .language-option {
+            width: 100%;
+            min-height: 62px;
+            padding: 10px 14px 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border: 0;
+            border-radius: 13px;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+            transition: background .18s ease;
+        }
+        .language-option:hover {
+            background: rgba(17, 17, 19, .045);
+        }
+        .language-option strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 590;
+            letter-spacing: -.015em;
+        }
+        .language-option small {
+            display: block;
+            margin-top: 3px;
+            color: rgba(17, 17, 19, .56);
+            font-size: 12px;
+        }
+        .language-check {
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(17, 17, 19, .06);
+            opacity: 0;
+        }
+        .language-option[aria-checked="true"] .language-check {
+            opacity: 1;
+        }
+        .language-check svg {
+            width: 18px;
+            height: 18px;
+        }
+        .language-search-wrap {
+            padding: 10px 0 0;
+            background: transparent;
+        }
+        .language-search {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 18px;
+            background: rgba(17, 17, 19, .05);
+            border: 1px solid rgba(17, 17, 19, .035);
+            border-radius: 999px;
+        }
+        .language-search svg {
+            width: 17px;
+            height: 17px;
+            color: rgba(17, 17, 19, .7);
+        }
+        .language-search input {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            font: inherit;
+            color: #111113;
+        }
+        .language-search input::placeholder {
+            color: rgba(17, 17, 19, .48);
+        }
+        body.language-modal-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 760px) {
+            .language-overlay {
+                padding: 12px;
+                place-items: end center;
+            }
+            .language-dialog {
+                width: 100%;
+                max-height: min(78vh, 680px);
+                border-radius: 22px;
+            }
+            .footer-language-trigger .language-region {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .language-overlay,
+            .language-dialog,
+            .footer-language-trigger {
+                transition: none !important;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="premium-ui.css">
 </head>
+
 <body>
+    <div class="session-overlay" id="sessionOverlay">
+        <div class="session-spinner" aria-label="Checking session"></div>
+    </div>
 
-  <div class="auth-shell">
-    <header class="topbar">
-      <a href="index.html" class="brand" aria-label="Signaturesi home">
-        <span class="brand-mark">
-          <i data-lucide="shield-check" size="18"></i>
-        </span>
-        <span class="brand-copy">
-          <strong>Signaturesi</strong>
-          <small>Bean Identity</small>
-        </span>
-      </a>
-
-      <div class="topbar-actions">
-        <button type="button" class="mode-link" id="topModeButton">Log in</button>
-        <button type="button" class="theme-button" id="themeButton" aria-label="Toggle theme">
-          <i data-lucide="sun" size="18"></i>
-        </button>
-      </div>
-    </header>
-
-    <main class="auth-main">
-      <section class="intro-panel">
-        <div class="intro-label">
-          <span class="intro-label-dot"></span>
-          Signaturesi private identity
-        </div>
-
-        <h1 class="intro-title">One identity across your ecosystem.</h1>
-
-        <p class="intro-description">
-          Create your Bean ID once and use it across NEO, Bean and future Signaturesi products.
-        </p>
-
-        <div class="identity-preview">
-          <span>yourname@bean</span>
-          <span>Private ecosystem ID</span>
-        </div>
-      </section>
-
-      <section class="auth-area">
-        <div class="auth-card">
-          <div class="card-topline">
-            <span class="card-eyebrow" id="cardEyebrow">Step 1 of 3</span>
-            <div class="step-indicator" id="stepIndicator">
-              <span class="step-dot active"></span>
-              <span class="step-dot"></span>
-              <span class="step-dot"></span>
+    <div class="auth-shell">
+        <header class="topbar">
+            <a href="index.html" class="brand" aria-label="Signaturesi home">
+                <span class="brand-mark"></span>
+                <span class="brand-copy">
+                    <strong>Signaturesi</strong>
+                    <small>Bean Identity</small>
+                </span>
+            </a>
+            <div class="topbar-actions">
+                <button type="button" class="mode-link" id="topModeButton">Log in</button>
+                <button type="button" class="theme-button" id="themeButton" aria-label="Use dark mode">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2"></path>
+                        <path d="M12 20v2"></path>
+                        <path d="m4.93 4.93 1.42 1.42"></path>
+                        <path d="m17.66 17.66 1.41 1.41"></path>
+                        <path d="M2 12h2"></path>
+                        <path d="M20 12h2"></path>
+                        <path d="m6.34 17.66-1.41 1.41"></path>
+                        <path d="m19.07 4.93-1.41 1.41"></path>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
             </div>
-          </div>
+        </header>
 
-          <h2 class="auth-title" id="authTitle">Choose your identity</h2>
-          <p class="auth-subtitle" id="authSubtitle">Create a private ID for the Signaturesi ecosystem.</p>
-
-          <form id="signupForm" novalidate>
-            <section class="step-panel active" data-step="1">
-              <div class="field-group">
-                <label class="field-label" for="signupUsername">Bean ID</label>
-                <div class="bean-id-field">
-                  <input type="text" class="bean-id-input" id="signupUsername" placeholder="username" minlength="3" maxlength="20" autocomplete="off" spellcheck="false" required>
-                  <span class="bean-suffix">@bean</span>
+        <main class="auth-main">
+            <section class="intro-panel">
+                <div class="intro-label">
+                    <span class="intro-label-dot"></span>
+                    Signaturesi private identity
                 </div>
-                <div class="availability" id="usernameAvailability" aria-live="polite"></div>
-                <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">3–20 lowercase letters, numbers or underscores.</p>
-              </div>
-
-              <div class="card-actions">
-                <button type="button" class="primary-button" id="stepOneNext" disabled>
-                  <span>Continue</span>
-                  <i data-lucide="arrow-right" size="16"></i>
-                </button>
-              </div>
-            </section>
-
-            <section class="step-panel" data-step="2">
-              <div class="field-group">
-                <label class="field-label" for="signupPassword">Password</label>
-                <div class="input-wrapper">
-                  <input type="password" class="auth-input" id="signupPassword" placeholder="At least 8 characters" minlength="8" required>
-                  <button type="button" class="password-toggle" id="signupPasswordToggle">
-                    <i data-lucide="eye" size="16"></i>
-                  </button>
+                <h1 class="intro-title">One identity across your ecosystem.</h1>
+                <p class="intro-description">Create your Bean ID once and use it across NEO, Bean and future Signaturesi products.</p>
+                <div class="identity-preview">
+                    <span>yourname@bean</span>
+                    <span>Private ecosystem ID</span>
                 </div>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label" for="confirmPassword">Confirm password</label>
-                <input type="password" class="auth-input" id="confirmPassword" placeholder="Re-enter password" minlength="8" required>
-              </div>
-
-              <div class="card-actions">
-                <button type="button" class="secondary-button" id="stepTwoBack">Back</button>
-                <button type="button" class="primary-button" id="stepTwoNext">
-                  <span>Review ID</span>
-                  <i data-lucide="arrow-right" size="16"></i>
-                </button>
-              </div>
             </section>
 
-            <section class="step-panel" data-step="3">
-              <div class="review-box">
-                <div class="review-label">Your new Bean ID</div>
-                <div class="review-id" id="reviewBeanId">username@bean</div>
-                <p class="review-copy">This identity will connect your NEO and Bean ecosystem account.</p>
-              </div>
+            <section class="auth-area">
+                <div class="auth-card">
+                    <div class="card-topline">
+                        <span class="card-eyebrow" id="cardEyebrow">Create Bean ID</span>
+                        <div class="step-indicator" id="stepIndicator" aria-label="Signup progress">
+                            <span class="step-dot active"></span>
+                            <span class="step-dot"></span>
+                            <span class="step-dot"></span>
+                        </div>
+                    </div>
 
-              <div class="message-box" id="step3Message"></div>
+                    <h2 class="auth-title" id="authTitle">Choose your identity</h2>
+                    <p class="auth-subtitle" id="authSubtitle">Your Bean ID will be used across Signaturesi.</p>
 
-              <div class="card-actions">
-                <button type="button" class="secondary-button" id="stepThreeBack">Back</button>
-                <button type="submit" class="primary-button" id="signupSubmitButton">
-                  <span>Create Bean ID</span>
-                  <i data-lucide="check" size="16"></i>
-                </button>
-              </div>
+                    <form id="signupForm" novalidate autocomplete="on">
+                        <section class="step-panel active" data-step="1">
+                            <div class="field-group">
+                                <label class="field-label" for="signupUsername">Bean ID</label>
+                                <div class="bean-id-field">
+                                    <input type="text" class="bean-id-input" id="signupUsername" name="bean_id" placeholder="username" minlength="3" maxlength="20" autocomplete="one-time-code" autocapitalize="none" inputmode="text" spellcheck="false" required>
+                                    <span class="bean-suffix">@bean</span>
+                                </div>
+                                <div class="availability" id="usernameAvailability" aria-live="polite"></div>
+                                <p class="field-note">3–20 lowercase letters, numbers or underscores.</p>
+                                <div class="message-box" id="signupMessage" role="alert" aria-live="polite"></div>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="primary-button" id="stepOneNext" disabled>
+                                    Continue
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m13 6 6 6-6 6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="step-panel" data-step="2">
+                            <div class="field-group">
+                                <label class="field-label" for="signupPassword">Password</label>
+                                <div class="input-wrapper">
+                                    <input type="password" class="auth-input" id="signupPassword" name="password" placeholder="Create a secure password" minlength="8" maxlength="100" autocomplete="new-password" required>
+                                    <button type="button" class="password-toggle" id="signupPasswordToggle" aria-label="Show password">
+                                        <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2.1 12s3.6-7 9.9-7 9.9 7 9.9 7-3.6 7-9.9 7-9.9-7-9.9-7Z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="m3 3 18 18"></path>
+                                            <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>
+                                            <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.3 0 9.9 8 9.9 8a17.8 17.8 0 0 1-3 4.1"></path>
+                                            <path d="M6.6 6.6A17 17 0 0 0 2.1 12s3.6 8 9.9 8a10.4 10.4 0 0 0 4.1-.8"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="passwordStrength">
+                                    <span class="strength-bar"></span>
+                                    <span class="strength-bar"></span>
+                                    <span class="strength-bar"></span>
+                                    <span class="strength-bar"></span>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="confirmPassword">Confirm password</label>
+                                <input type="password" class="auth-input no-icon" id="confirmPassword" name="confirmPassword" placeholder="Enter password again" minlength="8" maxlength="100" autocomplete="new-password" required>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="secondary-button" id="stepTwoBack">Back</button>
+                                <button type="button" class="primary-button" id="stepTwoNext">
+                                    Review ID
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m13 6 6 6-6 6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="step-panel" data-step="3">
+                            <div class="review-box">
+                                <div class="review-label">Your new Bean ID</div>
+                                <div class="review-id" id="reviewBeanId">username@bean</div>
+                                <p class="review-copy">This identity will connect your NEO and Bean ecosystem account.</p>
+                            </div>
+                            <div class="card-actions">
+                                <button type="button" class="secondary-button" id="stepThreeBack">Back</button>
+                                <button type="submit" class="primary-button" id="signupSubmitButton">
+                                    <span class="button-spinner"></span>
+                                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m13 6 6 6-6 6"></path>
+                                    </svg>
+                                    <span>Create Bean ID</span>
+                                </button>
+                            </div>
+                        </section>
+                    </form>
+
+                    <form id="loginForm" class="login-form" novalidate autocomplete="on">
+                        <div class="field-group">
+                            <label class="field-label" for="loginUsername">Bean ID</label>
+                            <div class="bean-id-field">
+                                <input type="text" class="bean-id-input" id="loginUsername" name="username" placeholder="username" minlength="3" maxlength="20" autocomplete="username" autocapitalize="none" inputmode="text" spellcheck="false" required>
+                                <span class="bean-suffix">@bean</span>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="loginPassword">Password</label>
+                            <div class="input-wrapper">
+                                <input type="password" class="auth-input" id="loginPassword" name="password" placeholder="Enter your password" minlength="8" maxlength="100" autocomplete="current-password" required>
+                                <button type="button" class="password-toggle" id="loginPasswordToggle" aria-label="Show password">
+                                    <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2.1 12s3.6-7 9.9-7 9.9 7 9.9 7-3.6 7-9.9 7-9.9-7-9.9-7Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m3 3 18 18"></path>
+                                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>
+                                        <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.3 0 9.9 8 9.9 8a17.8 17.8 0 0 1-3 4.1"></path>
+                                        <path d="M6.6 6.6A17 17 0 0 0 2.1 12s3.6 8 9.9 8a10.4 10.4 0 0 0 4.1-.8"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="message-box" id="loginMessage" role="alert" aria-live="polite"></div>
+                        <div class="card-actions">
+                            <button type="submit" class="primary-button" id="loginSubmitButton">
+                                <span class="button-spinner"></span>
+                                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m13 6 6 6-6 6"></path>
+                                </svg>
+                                <span>Enter NEO</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="auth-footer">
+                        By continuing, you accept Signaturesi
+                        <button type="button">Terms</button>
+                        and
+                        <button type="button">Privacy</button>.
+                    </p>
+                </div>
             </section>
-          </form>
+        </main>
+    </div>
 
-          <form id="loginForm" class="login-form" novalidate>
-            <div class="field-group">
-              <label class="field-label" for="loginUsername">Bean ID</label>
-              <div class="bean-id-field">
-                <input type="text" class="bean-id-input" id="loginUsername" placeholder="username" required>
-                <span class="bean-suffix">@bean</span>
-              </div>
-            </div>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js">
+    </script>
 
-            <div class="field-group">
-              <label class="field-label" for="loginPassword">Password</label>
-              <div class="input-wrapper">
-                <input type="password" class="auth-input" id="loginPassword" placeholder="Enter password" required>
-                <button type="button" class="password-toggle" id="loginPasswordToggle">
-                  <i data-lucide="eye" size="16"></i>
-                </button>
-              </div>
-            </div>
+    <script>
+        (function() {
+            "use strict";
 
-            <div class="message-box" id="loginMessage"></div>
+            // ─── Supabase setup ────────────────────────────────────────────────
+            const SUPABASE_URL = 'https://ajglvfoqiyrrisuoxecu.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAiU3VwYWJhc2UiLAogICJpYXQiOiAxNzQxNzU2MDAwLAogICJleHAiOiAyMDU3MzEyMDAwCn0.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAiU3VwYWJhc2UiLAogICJpYXQiOiAxNzQxNzU2MDAwLAogICJleHAiOiAyMDU3MzEyMDAwCn0';
 
-            <div class="card-actions">
-              <button type="submit" class="primary-button" id="loginSubmitButton">
-                <span>Enter NEO</span>
-                <i data-lucide="arrow-right" size="16"></i>
-              </button>
-            </div>
-          </form>
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true,
+                }
+            });
 
-          <p class="auth-footer">By continuing, you accept Signaturesi Terms and Privacy.</p>
-        </div>
-      </section>
-    </main>
-  </div>
+            // ─── DOM refs ─────────────────────────────────────────────────────
+            const sessionOverlay = document.getElementById("sessionOverlay");
+            const themeButton = document.getElementById("themeButton");
+            const topModeButton = document.getElementById("topModeButton");
+            const cardEyebrow = document.getElementById("cardEyebrow");
+            const authTitle = document.getElementById("authTitle");
+            const authSubtitle = document.getElementById("authSubtitle");
+            const stepIndicator = document.getElementById("stepIndicator");
+            const signupForm = document.getElementById("signupForm");
+            const loginForm = document.getElementById("loginForm");
+            const signupUsername = document.getElementById("signupUsername");
+            const signupPassword = document.getElementById("signupPassword");
+            const confirmPassword = document.getElementById("confirmPassword");
+            const loginUsername = document.getElementById("loginUsername");
+            const loginPassword = document.getElementById("loginPassword");
+            const reviewBeanId = document.getElementById("reviewBeanId");
+            const usernameAvailability = document.getElementById("usernameAvailability");
+            const signupMessage = document.getElementById("signupMessage");
+            const loginMessage = document.getElementById("loginMessage");
+            const stepOneNext = document.getElementById("stepOneNext");
+            const signupSubmitButton = document.getElementById("signupSubmitButton");
+            const loginSubmitButton = document.getElementById("loginSubmitButton");
+            const passwordStrength = document.getElementById("passwordStrength");
 
-  <script>
-    (function () {
-      "use strict";
+            let activeMode = "signup";
+            let currentStep = 1;
+            let isSubmitting = false;
+            let availabilityState = "idle";
+            let availabilityTimer = null;
+            let availabilityRequestId = 0;
 
-      const SUPABASE_URL = "https://ajglvfoqiyrrisuoxecu.supabase.co";
-      const SUPABASE_ANON_KEY = "sb_publishable_WnNBuQLAZzOqknbp1S3O3Q_MeCP5bim";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      const themeButton = document.getElementById("themeButton");
-      const topModeButton = document.getElementById("topModeButton");
-      const cardEyebrow = document.getElementById("cardEyebrow");
-      const authTitle = document.getElementById("authTitle");
-      const authSubtitle = document.getElementById("authSubtitle");
-      const stepIndicator = document.getElementById("stepIndicator");
-
-      const signupForm = document.getElementById("signupForm");
-      const loginForm = document.getElementById("loginForm");
-
-      const signupUsername = document.getElementById("signupUsername");
-      const signupPassword = document.getElementById("signupPassword");
-      const confirmPassword = document.getElementById("confirmPassword");
-
-      const loginUsername = document.getElementById("loginUsername");
-      const loginPassword = document.getElementById("loginPassword");
-
-      const reviewBeanId = document.getElementById("reviewBeanId");
-      const usernameAvailability = document.getElementById("usernameAvailability");
-
-      const step3Message = document.getElementById("step3Message");
-      const loginMessage = document.getElementById("loginMessage");
-
-      const stepOneNext = document.getElementById("stepOneNext");
-      const signupSubmitButton = document.getElementById("signupSubmitButton");
-      const loginSubmitButton = document.getElementById("loginSubmitButton");
-
-      let activeMode = "signup";
-      let currentStep = 1;
-      let isSubmitting = false;
-      let availabilityState = "idle";
-      let availabilityTimer = null;
-      let availabilityRequestId = 0;
-
-      function normalizeUsername(value) {
-        return String(value || "").trim().toLowerCase().replace(/^@/, "").replace(/@bean$/i, "");
-      }
-
-      function isValidUsername(value) {
-        return /^[a-z0-9_]{3,20}$/.test(value);
-      }
-
-      // Format Error Object correctly (solves {} bug!)
-      function formatErrorMessage(err) {
-        if (!err) return "An unexpected error occurred.";
-        if (typeof err === "string") return err;
-        if (err instanceof Error && err.message) return err.message;
-        if (typeof err === "object") {
-          if (err.message && typeof err.message === "string") return err.message;
-          if (err.error_description) return err.error_description;
-          if (err.msg) return err.msg;
-        }
-        return "Unable to process request. Please try again.";
-      }
-
-      function showMessage(element, text, type = "error") {
-        element.textContent = formatErrorMessage(text);
-        element.className = `message-box show ${type}`;
-      }
-
-      function clearMessage(element) {
-        element.textContent = "";
-        element.className = "message-box";
-      }
-
-      function setAvailability(state, text = "") {
-        availabilityState = state;
-        usernameAvailability.className = state === "idle" ? "availability" : `availability ${state}`;
-        usernameAvailability.innerHTML = text ? `<span class="availability-dot"></span><span>${text}</span>` : "";
-        stepOneNext.disabled = state !== "success" || isSubmitting;
-      }
-
-      function updateStepIndicator() {
-        const dots = stepIndicator.querySelectorAll(".step-dot");
-        dots.forEach((dot, index) => {
-          const stepNumber = index + 1;
-          dot.classList.toggle("active", stepNumber === currentStep);
-          dot.classList.toggle("completed", stepNumber < currentStep);
-        });
-      }
-
-      function updateSignupHeader() {
-        const headers = {
-          1: { eyebrow: "Step 1 of 3", title: "Choose your identity", subtitle: "Create a private ID for the Signaturesi ecosystem." },
-          2: { eyebrow: "Step 2 of 3", title: "Secure your account", subtitle: "Use a password with at least eight characters." },
-          3: { eyebrow: "Step 3 of 3", title: "Confirm your Bean ID", subtitle: "Review your identity before creating the account." }
-        };
-        const content = headers[currentStep];
-        cardEyebrow.textContent = content.eyebrow;
-        authTitle.textContent = content.title;
-        authSubtitle.textContent = content.subtitle;
-      }
-
-      function showStep(step) {
-        currentStep = Math.max(1, Math.min(3, step));
-        document.querySelectorAll(".step-panel").forEach(panel => {
-          panel.classList.toggle("active", Number(panel.dataset.step) === currentStep);
-        });
-        updateStepIndicator();
-        updateSignupHeader();
-
-        if (currentStep === 1) signupUsername.focus();
-        if (currentStep === 2) signupPassword.focus();
-        if (currentStep === 3) reviewBeanId.textContent = `${normalizeUsername(signupUsername.value)}@bean`;
-      }
-
-      function setMode(mode) {
-        if (isSubmitting) return;
-        activeMode = mode === "login" ? "login" : "signup";
-        const isSignup = activeMode === "signup";
-
-        signupForm.style.display = isSignup ? "block" : "none";
-        loginForm.classList.toggle("active", !isSignup);
-        stepIndicator.style.display = isSignup ? "flex" : "none";
-        topModeButton.textContent = isSignup ? "Log in" : "Create Bean ID";
-
-        clearMessage(step3Message);
-        clearMessage(loginMessage);
-
-        if (isSignup) {
-          showStep(currentStep);
-          return;
-        }
-
-        cardEyebrow.textContent = "Secure access";
-        authTitle.textContent = "Welcome back";
-        authSubtitle.textContent = "Enter your Bean ID to continue to NEO.";
-        window.setTimeout(() => loginUsername.focus(), 50);
-      }
-
-      async function checkUsernameAvailability(username, requestId) {
-        setAvailability("checking", "Checking Bean ID…");
-
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('username', username)
-            .maybeSingle();
-
-          if (requestId !== availabilityRequestId) return false;
-
-          if (data) {
-            setAvailability("error", `${username}@bean is already taken.`);
-            return false;
-          }
-
-          setAvailability("success", `${username}@bean is available.`);
-          return true;
-        } catch (err) {
-          if (requestId !== availabilityRequestId) return false;
-          setAvailability("success", `${username}@bean is available.`);
-          return true;
-        }
-      }
-
-      function scheduleAvailabilityCheck() {
-        window.clearTimeout(availabilityTimer);
-        availabilityRequestId += 1;
-        const requestId = availabilityRequestId;
-        const username = normalizeUsername(signupUsername.value);
-
-        if (!username) {
-          setAvailability("idle");
-          return;
-        }
-
-        if (!isValidUsername(username)) {
-          setAvailability("error", "Use 3–20 lowercase letters, numbers or underscores.");
-          return;
-        }
-
-        setAvailability("checking", "Checking Bean ID…");
-        availabilityTimer = window.setTimeout(() => {
-          checkUsernameAvailability(username, requestId);
-        }, 350);
-      }
-
-      async function validateStepOne() {
-        const username = normalizeUsername(signupUsername.value);
-        signupUsername.value = username;
-
-        if (!isValidUsername(username)) {
-          setAvailability("error", "Use 3–20 lowercase letters, numbers or underscores.");
-          signupUsername.focus();
-          return false;
-        }
-
-        if (availabilityState === "success") return true;
-
-        availabilityRequestId += 1;
-        return checkUsernameAvailability(username, availabilityRequestId);
-      }
-
-      function validateStepTwo() {
-        const password = signupPassword.value;
-        const confirmation = confirmPassword.value;
-
-        if (password.length < 8) {
-          alert("Password must contain at least 8 characters.");
-          signupPassword.focus();
-          return false;
-        }
-
-        if (password !== confirmation) {
-          alert("Passwords do not match.");
-          confirmPassword.focus();
-          return false;
-        }
-
-        return true;
-      }
-
-      function setLoading(button, active) {
-        isSubmitting = active;
-        signupSubmitButton.disabled = active;
-        loginSubmitButton.disabled = active;
-        topModeButton.disabled = active;
-      }
-
-      function setAuthCookie(token) {
-        if (!token) return;
-        const domain = window.location.hostname.includes("signaturesi.com") ? ".signaturesi.com" : window.location.hostname;
-        document.cookie = `sb_access_token=${token}; path=/; domain=${domain}; max-age=604800; SameSite=Lax; Secure`;
-      }
-
-      // Account Creation
-      async function createAccount(event) {
-        event.preventDefault();
-        if (isSubmitting || !validateStepTwo()) return;
-
-        const username = normalizeUsername(signupUsername.value);
-        const email = `${username}@signaturesi.com`;
-        const password = signupPassword.value;
-
-        clearMessage(step3Message);
-        setLoading(signupSubmitButton, true);
-
-        try {
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { data: { username } }
-          });
-
-          if (error) throw error;
-
-          if (data.user) {
-            // Check if user already exists
-            if (data.user.identities && data.user.identities.length === 0) {
-              showMessage(step3Message, `${username}@bean is already registered. Please log in above.`, "error");
-              setLoading(signupSubmitButton, false);
-              return;
+            // ─── Helpers ──────────────────────────────────────────────────────
+            function normalizeUsername(value) {
+                return String(value || "").trim().toLowerCase().replace(/^@/, "").replace(/@bean$/i, "");
             }
 
-            if (data.session) {
-              setAuthCookie(data.session.access_token);
+            function isValidUsername(value) {
+                return /^[a-z0-9_]{3,20}$/.test(value);
             }
 
-            showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
-            window.setTimeout(() => {
-              window.location.href = "https://signaturesi-neo1.vercel.app";
-            }, 1000);
-          }
+            function clearLegacyStorage() {
+                localStorage.removeItem("signaturesi_user");
+                localStorage.removeItem("bean_user");
+                localStorage.removeItem("user");
+                localStorage.removeItem("userData");
+            }
 
-        } catch (error) {
-          showMessage(step3Message, error, "error");
-          setLoading(signupSubmitButton, false);
-        }
-      }
+            function showMessage(element, text, type = "error") {
+                element.textContent = text;
+                element.className = `message-box show ${type}`;
+            }
 
-      // Login Account
-      async function loginAccount(event) {
-        event.preventDefault();
-        if (isSubmitting) return;
+            function clearMessage(element) {
+                element.textContent = "";
+                element.className = "message-box";
+            }
 
-        const username = normalizeUsername(loginUsername.value);
-        const email = `${username}@signaturesi.com`;
-        const password = loginPassword.value;
+            function setAvailability(state, text = "") {
+                availabilityState = state;
+                usernameAvailability.className = state === "idle" ? "availability" : `availability ${state}`;
+                usernameAvailability.innerHTML = text ?
+                    `<span class="availability-dot"></span><span>${text}</span>` :
+                    "";
+                stepOneNext.disabled = state !== "success" || isSubmitting;
+            }
 
-        clearMessage(loginMessage);
-        setLoading(loginSubmitButton, true);
+            function updateThemeButton() {
+                const isDark = document.body.classList.contains("dark-mode");
+                themeButton.setAttribute("aria-label", isDark ? "Use light mode" : "Use dark mode");
+            }
 
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
+            function initializeTheme() {
+                const theme = localStorage.getItem("neo_theme");
+                document.body.classList.toggle("dark-mode", theme === "dark");
+                updateThemeButton();
+            }
 
-          if (error) throw error;
+            function toggleTheme() {
+                document.body.classList.toggle("dark-mode");
+                const isDark = document.body.classList.contains("dark-mode");
+                localStorage.setItem("neo_theme", isDark ? "dark" : "light");
+                updateThemeButton();
+            }
 
-          if (data.session) {
-            setAuthCookie(data.session.access_token);
-          }
+            function updateStepIndicator() {
+                const dots = stepIndicator.querySelectorAll(".step-dot");
+                dots.forEach((dot, index) => {
+                    const stepNumber = index + 1;
+                    dot.classList.toggle("active", stepNumber === currentStep);
+                    dot.classList.toggle("completed", stepNumber < currentStep);
+                });
+            }
 
-          showMessage(loginMessage, "Login successful. Opening NEO…", "success");
-          window.setTimeout(() => {
-            window.location.href = "https://signaturesi-neo1.vercel.app";
-          }, 800);
+            function updateSignupHeader() {
+                const headers = {
+                    1: { eyebrow: "Step 1 of 3", title: "Choose your identity", subtitle: "Create a private ID for the Signaturesi ecosystem." },
+                    2: { eyebrow: "Step 2 of 3", title: "Secure your account", subtitle: "Use a password with at least eight characters." },
+                    3: { eyebrow: "Step 3 of 3", title: "Confirm your Bean ID", subtitle: "Review your identity before creating the account." }
+                };
+                const content = headers[currentStep];
+                cardEyebrow.textContent = content.eyebrow;
+                authTitle.textContent = content.title;
+                authSubtitle.textContent = content.subtitle;
+            }
 
-        } catch (error) {
-          showMessage(loginMessage, error, "error");
-          setLoading(loginSubmitButton, false);
-        }
-      }
+            function showStep(step) {
+                currentStep = Math.max(1, Math.min(3, step));
+                document.querySelectorAll(".step-panel").forEach(panel => {
+                    panel.classList.toggle("active", Number(panel.dataset.step) === currentStep);
+                });
+                updateStepIndicator();
+                updateSignupHeader();
+                if (currentStep === 1) signupUsername.focus();
+                if (currentStep === 2) signupPassword.focus();
+                if (currentStep === 3) {
+                    reviewBeanId.textContent = `${normalizeUsername(signupUsername.value)}@bean`;
+                }
+            }
 
-      function setupPasswordToggle(button, input) {
-        button.addEventListener("click", () => {
-          const show = input.type === "password";
-          input.type = show ? "text" : "password";
-        });
-      }
+            function setMode(mode) {
+                if (isSubmitting) return;
+                activeMode = mode === "login" ? "login" : "signup";
+                const isSignup = activeMode === "signup";
+                signupForm.style.display = isSignup ? "block" : "none";
+                loginForm.classList.toggle("active", !isSignup);
+                stepIndicator.style.display = isSignup ? "flex" : "none";
+                topModeButton.textContent = isSignup ? "Log in" : "Create Bean ID";
+                clearMessage(signupMessage);
+                clearMessage(loginMessage);
+                if (isSignup) {
+                    showStep(currentStep);
+                    return;
+                }
+                cardEyebrow.textContent = "Secure access";
+                authTitle.textContent = "Welcome back";
+                authSubtitle.textContent = "Enter your Bean ID to continue to NEO.";
+                window.setTimeout(() => loginUsername.focus(), 50);
+            }
 
-      stepOneNext.addEventListener("click", async () => {
-        if (await validateStepOne()) showStep(2);
-      });
+            function evaluatePasswordStrength(password) {
+                let score = 0;
+                if (password.length >= 8) score += 1;
+                if (password.length >= 12) score += 1;
+                if (/[A-Z]/.test(password) || /[0-9]/.test(password)) score += 1;
+                if (/[^A-Za-z0-9]/.test(password)) score += 1;
+                passwordStrength.querySelectorAll(".strength-bar").forEach((bar, index) => {
+                    bar.classList.toggle("active", index < score);
+                });
+            }
 
-      document.getElementById("stepTwoBack").addEventListener("click", () => showStep(1));
-      document.getElementById("stepTwoNext").addEventListener("click", () => {
-        if (validateStepTwo()) showStep(3);
-      });
-      document.getElementById("stepThreeBack").addEventListener("click", () => showStep(2));
+            // ─── Supabase: username availability ─────────────────────────────
+            async function checkUsernameAvailability(username, requestId) {
+                setAvailability("checking", "Checking Bean ID…");
+                try {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('username')
+                        .eq('username', username)
+                        .maybe();
 
-      topModeButton.addEventListener("click", () => {
-        setMode(activeMode === "signup" ? "login" : "signup");
-      });
+                    if (requestId !== availabilityRequestId) return false;
 
-      signupUsername.addEventListener("input", () => {
-        signupUsername.value = normalizeUsername(signupUsername.value).replace(/[^a-z0-9_]/g, "").slice(0, 20);
-        setAvailability("idle");
-        scheduleAvailabilityCheck();
-      });
+                    if (error) {
+                        setAvailability("error", error.message || "Unable to check Bean ID.");
+                        return false;
+                    }
 
-      signupForm.addEventListener("submit", createAccount);
-      loginForm.addEventListener("submit", loginAccount);
+                    if (data && data.length > 0) {
+                        setAvailability("error", `${username}@bean is already taken.`);
+                        return false;
+                    }
 
-      setupPasswordToggle(document.getElementById("signupPasswordToggle"), signupPassword);
-      setupPasswordToggle(document.getElementById("loginPasswordToggle"), loginPassword);
+                    setAvailability("success", `${username}@bean is available.`);
+                    return true;
+                } catch (error) {
+                    if (requestId !== availabilityRequestId) return false;
+                    setAvailability("error", error.message || "Unable to check Bean ID.");
+                    return false;
+                }
+            }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        if (window.lucide) window.lucide.createIcons();
-        setAvailability("idle");
-        showStep(1);
-        setMode("signup");
-      });
-    })();
-  </script>
+            function scheduleAvailabilityCheck() {
+                window.clearTimeout(availabilityTimer);
+                availabilityRequestId += 1;
+                const requestId = availabilityRequestId;
+                const username = normalizeUsername(signupUsername.value);
+                clearMessage(signupMessage);
+                if (!username) { setAvailability("idle"); return; }
+                if (!isValidUsername(username)) {
+                    setAvailability("error", "Use 3–20 lowercase letters, numbers or underscores.");
+                    return;
+                }
+                setAvailability("checking", "Checking Bean ID…");
+                availabilityTimer = window.setTimeout(() => {
+                    checkUsernameAvailability(username, requestId);
+                }, 550);
+            }
+
+            // ─── Step validation ─────────────────────────────────────────────
+            async function validateStepOne() {
+                const username = normalizeUsername(signupUsername.value);
+                signupUsername.value = username;
+                if (!isValidUsername(username)) {
+                    setAvailability("error", "Use 3–20 lowercase letters, numbers or underscores.");
+                    signupUsername.focus();
+                    return false;
+                }
+                if (availabilityState === "success") return true;
+                availabilityRequestId += 1;
+                return checkUsernameAvailability(username, availabilityRequestId);
+            }
+
+            function validateStepTwo() {
+                const password = signupPassword.value;
+                const confirmation = confirmPassword.value;
+                if (password.length < 8 || password.length > 100) {
+                    showMessage(signupMessage, "Password must contain 8–100 characters.");
+                    signupPassword.focus();
+                    return false;
+                }
+                if (password !== confirmation) {
+                    showMessage(signupMessage, "Passwords do not match.");
+                    confirmPassword.focus();
+                    return false;
+                }
+                clearMessage(signupMessage);
+                return true;
+            }
+
+            function setLoading(button, active) {
+                isSubmitting = active;
+                signupSubmitButton.disabled = active;
+                loginSubmitButton.disabled = active;
+                topModeButton.disabled = active;
+                button.classList.toggle("loading", active);
+                const activeInputs = activeMode === "signup" ?
+                    [signupUsername, signupPassword, confirmPassword] :
+                    [loginUsername, loginPassword];
+                activeInputs.forEach(input => { input.disabled = active; });
+                if (!active && activeMode === "signup") {
+                    stepOneNext.disabled = availabilityState !== "success";
+                }
+            }
+
+            // ─── Supabase: signup ────────────────────────────────────────────
+            async function createAccount(event) {
+                event.preventDefault();
+                if (isSubmitting || !validateStepTwo()) return;
+
+                const username = normalizeUsername(signupUsername.value);
+                if (!isValidUsername(username)) {
+                    showStep(1);
+                    setAvailability("error", "Enter a valid Bean ID.");
+                    return;
+                }
+
+                clearMessage(signupMessage);
+                setLoading(signupSubmitButton, true);
+
+                try {
+                    // 1) Check availability one last time
+                    const { data: existing, error: checkError } = await supabase
+                        .from('profiles')
+                        .select('username')
+                        .eq('username', username)
+                        .maybe();
+
+                    if (checkError) throw new Error(checkError.message);
+                    if (existing && existing.length > 0) {
+                        showStep(1);
+                        setAvailability("error", `${username}@bean is already taken.`);
+                        setLoading(signupSubmitButton, false);
+                        return;
+                    }
+
+                    // 2) Create auth user with email = username@bean.local
+                    const email = `${username}@bean.local`;
+                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                        email: email,
+                        password: signupPassword.value,
+                        options: {
+                            data: { username: username }
+                        }
+                    });
+
+                    if (authError) {
+                        // If the error is about email already registered, check if it's this username
+                        if (authError.message && authError.message.toLowerCase().includes('email')) {
+                            // Try to see if this username is already taken
+                            const { data: takenCheck } = await supabase
+                                .from('profiles')
+                                .select('username')
+                                .eq('username', username)
+                                .maybe();
+                            if (takenCheck && takenCheck.length > 0) {
+                                showStep(1);
+                                setAvailability("error", `${username}@bean is already taken.`);
+                                setLoading(signupSubmitButton, false);
+                                return;
+                            }
+                        }
+                        throw new Error(authError.message || 'Signup failed.');
+                    }
+
+                    if (!authData.user) {
+                        throw new Error('Account could not be created.');
+                    }
+
+                    // 3) Create profile entry
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .insert({ id: authData.user.id, username: username });
+
+                    if (profileError) {
+                        // Rollback: delete the auth user if profile creation fails
+                        await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {});
+                        throw new Error(profileError.message || 'Could not create profile.');
+                    }
+
+                    // 4) Store session locally
+                    clearLegacyStorage();
+                    localStorage.setItem("signaturesi_user", JSON.stringify({
+                        id: authData.user.id,
+                        username: username
+                    }));
+
+                    showMessage(signupMessage, `${username}@bean is ready. Opening NEO…`, "success");
+
+                    window.setTimeout(() => {
+                        window.location.replace("neo.html");
+                    }, 450);
+
+                } catch (error) {
+                    if (error.message && error.message.toLowerCase().includes('taken')) {
+                        showStep(1);
+                        setAvailability("error", error.message);
+                        setLoading(signupSubmitButton, false);
+                        return;
+                    }
+                    showMessage(signupMessage, error.message || "Unable to create your Bean ID.");
+                    setLoading(signupSubmitButton, false);
+                }
+            }
+
+            // ─── Supabase: login ─────────────────────────────────────────────
+            async function loginAccount(event) {
+                event.preventDefault();
+                if (isSubmitting) return;
+
+                const username = normalizeUsername(loginUsername.value);
+                const password = loginPassword.value;
+                loginUsername.value = username;
+                clearMessage(loginMessage);
+
+                if (!isValidUsername(username)) {
+                    showMessage(loginMessage, "Enter a valid Bean ID.");
+                    loginUsername.focus();
+                    return;
+                }
+                if (password.length < 1 || password.length > 100) {
+                    showMessage(loginMessage, "Invalid username or password.");
+                    loginPassword.focus();
+                    return;
+                }
+
+                setLoading(loginSubmitButton, true);
+
+                try {
+                    const email = `${username}@bean.local`;
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+
+                    if (error) {
+                        // Check if user exists but maybe email is different
+                        if (error.message && error.message.toLowerCase().includes('email')) {
+                            // Try to find the user by username in profiles
+                            const { data: profileData, error: profileError } = await supabase
+                                .from('profiles')
+                                .select('id')
+                                .eq('username', username)
+                                .maybe();
+
+                            if (!profileError && profileData && profileData.length > 0) {
+                                // User exists but email doesn't match — we could try to recover
+                                // For now, show a generic error
+                                throw new Error('Invalid username or password.');
+                            }
+                        }
+                        throw new Error(error.message || 'Invalid username or password.');
+                    }
+
+                    if (!data.user) {
+                        throw new Error('Login failed.');
+                    }
+
+                    // Verify the username matches the profile
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('username')
+                        .eq('id', data.user.id)
+                        .maybe();
+
+                    if (profileError || !profileData || profileData.length === 0) {
+                        // Create profile if missing (fallback)
+                        await supabase.from('profiles').insert({ id: data.user.id, username: username }).catch(() => {});
+                        localStorage.setItem("signaturesi_user", JSON.stringify({
+                            id: data.user.id,
+                            username: username
+                        }));
+                    } else {
+                        localStorage.setItem("signaturesi_user", JSON.stringify({
+                            id: data.user.id,
+                            username: profileData[0].username
+                        }));
+                    }
+
+                    clearLegacyStorage();
+                    showMessage(loginMessage, "Login successful. Opening NEO…", "success");
+
+                    window.setTimeout(() => {
+                        window.location.replace("neo.html");
+                    }, 350);
+
+                } catch (error) {
+                    showMessage(loginMessage, error.message || "Invalid username or password.");
+                    setLoading(loginSubmitButton, false);
+                }
+            }
+
+            // ─── Password toggle ─────────────────────────────────────────────
+            function setupPasswordToggle(button, input) {
+                button.addEventListener("click", () => {
+                    const show = input.type === "password";
+                    input.type = show ? "text" : "password";
+                    button.classList.toggle("is-visible", show);
+                    button.setAttribute("aria-label", show ? "Hide password" : "Show password");
+                });
+            }
+
+            // ─── Session check ──────────────────────────────────────────────
+            async function checkExistingSession() {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session && session.user) {
+                        // Verify profile exists
+                        const { data: profileData, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('username')
+                            .eq('id', session.user.id)
+                            .maybe();
+
+                        if (!profileError && profileData && profileData.length > 0) {
+                            localStorage.setItem("signaturesi_user", JSON.stringify({
+                                id: session.user.id,
+                                username: profileData[0].username
+                            }));
+                            window.location.replace("neo.html");
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.warn("Session check failed:", error);
+                }
+                sessionOverlay.classList.add("hidden");
+                signupUsername.focus();
+            }
+
+            // ─── Event listeners ─────────────────────────────────────────────
+            stepOneNext.addEventListener("click", async () => {
+                if (await validateStepOne()) showStep(2);
+            });
+
+            document.getElementById("stepTwoBack").addEventListener("click", () => showStep(1));
+            document.getElementById("stepTwoNext").addEventListener("click", () => {
+                if (validateStepTwo()) showStep(3);
+            });
+            document.getElementById("stepThreeBack").addEventListener("click", () => showStep(2));
+
+            topModeButton.addEventListener("click", () => {
+                setMode(activeMode === "signup" ? "login" : "signup");
+            });
+
+            themeButton.addEventListener("click", toggleTheme);
+
+            signupUsername.addEventListener("input", () => {
+                signupUsername.value = normalizeUsername(signupUsername.value).replace(/[^a-z0-9_]/g, "").slice(0, 20);
+                setAvailability("idle");
+                scheduleAvailabilityCheck();
+            });
+
+            loginUsername.addEventListener("input", () => {
+                loginUsername.value = normalizeUsername(loginUsername.value).replace(/[^a-z0-9_]/g, "").slice(0, 20);
+                clearMessage(loginMessage);
+            });
+
+            signupPassword.addEventListener("input", () => {
+                evaluatePasswordStrength(signupPassword.value);
+                clearMessage(signupMessage);
+            });
+
+            confirmPassword.addEventListener("input", () => clearMessage(signupMessage));
+            loginPassword.addEventListener("input", () => clearMessage(loginMessage));
+
+            signupUsername.addEventListener("keydown", async (event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                if (await validateStepOne()) showStep(2);
+            });
+
+            signupPassword.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") { event.preventDefault();
+                    confirmPassword.focus(); }
+            });
+
+            confirmPassword.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (validateStepTwo()) showStep(3);
+                }
+            });
+
+            signupForm.addEventListener("submit", createAccount);
+            loginForm.addEventListener("submit", loginAccount);
+
+            setupPasswordToggle(document.getElementById("signupPasswordToggle"), signupPassword);
+            setupPasswordToggle(document.getElementById("loginPasswordToggle"), loginPassword);
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                initializeTheme();
+                setAvailability("idle");
+                showStep(1);
+                setMode("signup");
+                await checkExistingSession();
+            });
+        })();
+    </script>
+
+    <script id="premium-ui-inline">
+        (() => {
+            const languages = [
+                ['English', 'United States', 'en-US'],
+                ['English', 'United Kingdom', 'en-GB'],
+                ['اردو', 'Urdu', 'ur-PK'],
+                ['العربية', 'Arabic', 'ar'],
+                ['বাংলা', 'Bengali', 'bn'],
+                ['中文', 'Chinese', 'zh'],
+                ['Čeština', 'Czech', 'cs'],
+                ['Dansk', 'Danish', 'da'],
+                ['Nederlands', 'Dutch', 'nl'],
+                ['Eesti', 'Estonian', 'et'],
+                ['Filipino', 'Filipino', 'fil'],
+                ['Suomi', 'Finnish', 'fi'],
+                ['Français', 'Canada', 'fr-CA'],
+                ['Français', 'France', 'fr-FR'],
+                ['Deutsch', 'German', 'de'],
+                ['Ελληνικά', 'Greek', 'el'],
+                ['हिन्दी', 'Hindi', 'hi'],
+                ['Bahasa Indonesia', 'Indonesian', 'id'],
+                ['Italiano', 'Italian', 'it'],
+                ['日本語', 'Japanese', 'ja'],
+                ['한국어', 'Korean', 'ko'],
+                ['Norsk', 'Norwegian', 'no'],
+                ['Polski', 'Polish', 'pl'],
+                ['Português', 'Brazil', 'pt-BR'],
+                ['Português', 'Portugal', 'pt-PT'],
+                ['Română', 'Romanian', 'ro'],
+                ['Русский', 'Russian', 'ru'],
+                ['Español', 'Spain', 'es-ES'],
+                ['Español', 'Latin America', 'es-419'],
+                ['Svenska', 'Swedish', 'sv'],
+                ['Türkçe', 'Turkish', 'tr']
+            ];
+
+            const globe = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>';
+            const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>';
+            const close = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
+            const searchIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>';
+
+            const init = () => {
+                const trigger = document.querySelector('.footer-meta button[aria-label*="language" i]');
+                if (!trigger || trigger.dataset.premiumReady) return;
+
+                const stored = localStorage.getItem('signaturesi-language') || 'en-US';
+                const current = languages.find((item) => item[2] === stored) || languages[0];
+                trigger.dataset.premiumReady = 'true';
+                trigger.classList.add('footer-language-trigger');
+                trigger.innerHTML =
+                    `${globe}<span class="language-name">${current[0]}</span><span class="language-region">${current[1]}</span>`;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'language-overlay';
+                overlay.setAttribute('aria-hidden', 'true');
+                overlay.innerHTML = `
+              <section class="language-dialog" role="dialog" aria-modal="true" aria-labelledby="language-title">
+                <header class="language-dialog-header">
+                  <h2 id="language-title" class="language-dialog-title">Select language</h2>
+                  <button class="language-close" type="button" aria-label="Close language selector">${close}</button>
+                </header>
+                <div class="language-list" role="radiogroup" aria-label="Languages"></div>
+                <div class="language-search-wrap">
+                  <label class="language-search">${searchIcon}<input type="search" aria-label="Search languages" placeholder="Search"></label>
+                </div>
+              </section>`;
+                document.body.appendChild(overlay);
+
+                const list = overlay.querySelector('.language-list');
+                const input = overlay.querySelector('input');
+                const closeButton = overlay.querySelector('.language-close');
+
+                const render = (query = '') => {
+                    const normalized = query.trim().toLowerCase();
+                    list.innerHTML = '';
+                    languages
+                        .filter(([name, region]) => `${name} ${region}`.toLowerCase().includes(normalized))
+                        .forEach(([name, region, code]) => {
+                            const option = document.createElement('button');
+                            option.type = 'button';
+                            option.className = 'language-option';
+                            option.setAttribute('role', 'radio');
+                            option.setAttribute('aria-checked', String(code === (localStorage.getItem(
+                                'signaturesi-language') || stored)));
+                            option.innerHTML =
+                                `<span><strong>${name}${region && name !== region ? ` <span style="color:rgba(17,17,19,.48);font-weight:520">${region}</span>` : ''}</strong><small>${name}${region ? ` · ${region}` : ''}</small></span><span class="language-check">${check}</span>`;
+                            option.addEventListener('click', () => {
+                                localStorage.setItem('signaturesi-language', code);
+                                document.documentElement.lang = code;
+                                trigger.innerHTML =
+                                    `${globe}<span class="language-name">${name}</span><span class="language-region">${region}</span>`;
+                                render(input.value);
+                                closeDialog();
+                            });
+                            list.appendChild(option);
+                        });
+                };
+
+                const openDialog = () => {
+                    overlay.classList.add('is-open');
+                    overlay.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('language-modal-open');
+                    window.setTimeout(() => input.focus(), 80);
+                };
+                const closeDialog = () => {
+                    overlay.classList.remove('is-open');
+                    overlay.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('language-modal-open');
+                    trigger.focus();
+                };
+
+                trigger.addEventListener('click', openDialog);
+                closeButton.addEventListener('click', closeDialog);
+                overlay.addEventListener('click', (event) => { if (event.target === overlay) closeDialog(); });
+                input.addEventListener('input', () => render(input.value));
+                document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && overlay.classList.contains(
+                        'is-open')) closeDialog(); });
+                render();
+            };
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+        })();
+    </script>
 </body>
 </html>
