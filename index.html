@@ -277,7 +277,7 @@
     .login-form.active { display: block; animation: stepEnter 180ms ease; }
 
     .message-box {
-      display: none; margin-top: 13px; padding: 10px 12px; border-radius: 10px; font-size: 12px; text-align: center;
+      display: none; margin-top: 13px; padding: 10px 12px; border-radius: 10px; font-size: 12px; text-align: center; word-break: break-word;
     }
     .message-box.show { display: block; }
     .message-box.error { color: var(--danger); background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -416,7 +416,6 @@
                 <p class="review-copy">This identity will connect your NEO and Bean ecosystem account.</p>
               </div>
 
-              <!-- Message box rendered directly in Step 3 -->
               <div class="message-box" id="step3Message"></div>
 
               <div class="card-actions">
@@ -514,8 +513,22 @@
         return /^[a-z0-9_]{3,20}$/.test(value);
       }
 
+      // Safe Error Formatter to prevent {} rendering
+      function formatErrorMessage(err) {
+        if (!err) return "An unexpected error occurred.";
+        if (typeof err === "string") return err;
+        if (err.message && typeof err.message === "string") return err.message;
+        if (err.error_description && typeof err.error_description === "string") return err.error_description;
+        if (err.msg && typeof err.msg === "string") return err.msg;
+        try {
+          return JSON.stringify(err);
+        } catch (e) {
+          return "Unable to process request.";
+        }
+      }
+
       function showMessage(element, text, type = "error") {
-        element.textContent = text;
+        element.textContent = formatErrorMessage(text);
         element.className = `message-box show ${type}`;
       }
 
@@ -685,7 +698,7 @@
         document.cookie = `sb_access_token=${token}; path=/; domain=${domain}; max-age=604800; SameSite=Lax; Secure`;
       }
 
-      // Account Creation (Step 3)
+      // Account Creation Handler
       async function createAccount(event) {
         event.preventDefault();
         if (isSubmitting || !validateStepTwo()) return;
@@ -708,22 +721,30 @@
 
           if (data.session) {
             setAuthCookie(data.session.access_token);
-            showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
+            showMessage(step3Message, `${username}@bean created! Redirecting to NEO…`, "success");
             window.setTimeout(() => {
               window.location.href = "https://signaturesi-neo1.vercel.app";
             }, 1000);
-          } else {
-            showMessage(step3Message, "Account created! Please disable 'Confirm Email' in Supabase Auth to enable instant login.", "success");
+          } else if (data.user) {
+            // Check if user already exists
+            if (data.user.identities && data.user.identities.length === 0) {
+              showMessage(step3Message, `${username}@bean already exists. Click "Log in" above.`, "error");
+            } else {
+              showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
+              window.setTimeout(() => {
+                window.location.href = "https://signaturesi-neo1.vercel.app";
+              }, 1200);
+            }
             setLoading(signupSubmitButton, false);
           }
 
         } catch (error) {
-          showMessage(step3Message, error.message || "Unable to create your Bean ID.", "error");
+          showMessage(step3Message, error, "error");
           setLoading(signupSubmitButton, false);
         }
       }
 
-      // Login Account
+      // Login Account Handler
       async function loginAccount(event) {
         event.preventDefault();
         if (isSubmitting) return;
@@ -753,7 +774,7 @@
           }, 800);
 
         } catch (error) {
-          showMessage(loginMessage, "Invalid Bean ID or password.");
+          showMessage(loginMessage, error, "error");
           setLoading(loginSubmitButton, false);
         }
       }
