@@ -513,18 +513,17 @@
         return /^[a-z0-9_]{3,20}$/.test(value);
       }
 
-      // Safe Error Formatter to prevent {} rendering
+      // Format Error Object correctly (solves {} bug!)
       function formatErrorMessage(err) {
         if (!err) return "An unexpected error occurred.";
         if (typeof err === "string") return err;
-        if (err.message && typeof err.message === "string") return err.message;
-        if (err.error_description && typeof err.error_description === "string") return err.error_description;
-        if (err.msg && typeof err.msg === "string") return err.msg;
-        try {
-          return JSON.stringify(err);
-        } catch (e) {
-          return "Unable to process request.";
+        if (err instanceof Error && err.message) return err.message;
+        if (typeof err === "object") {
+          if (err.message && typeof err.message === "string") return err.message;
+          if (err.error_description) return err.error_description;
+          if (err.msg) return err.msg;
         }
+        return "Unable to process request. Please try again.";
       }
 
       function showMessage(element, text, type = "error") {
@@ -698,7 +697,7 @@
         document.cookie = `sb_access_token=${token}; path=/; domain=${domain}; max-age=604800; SameSite=Lax; Secure`;
       }
 
-      // Account Creation Handler
+      // Account Creation
       async function createAccount(event) {
         event.preventDefault();
         if (isSubmitting || !validateStepTwo()) return;
@@ -719,23 +718,22 @@
 
           if (error) throw error;
 
-          if (data.session) {
-            setAuthCookie(data.session.access_token);
-            showMessage(step3Message, `${username}@bean created! Redirecting to NEO…`, "success");
+          if (data.user) {
+            // Check if user already exists
+            if (data.user.identities && data.user.identities.length === 0) {
+              showMessage(step3Message, `${username}@bean is already registered. Please log in above.`, "error");
+              setLoading(signupSubmitButton, false);
+              return;
+            }
+
+            if (data.session) {
+              setAuthCookie(data.session.access_token);
+            }
+
+            showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
             window.setTimeout(() => {
               window.location.href = "https://signaturesi-neo1.vercel.app";
             }, 1000);
-          } else if (data.user) {
-            // Check if user already exists
-            if (data.user.identities && data.user.identities.length === 0) {
-              showMessage(step3Message, `${username}@bean already exists. Click "Log in" above.`, "error");
-            } else {
-              showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
-              window.setTimeout(() => {
-                window.location.href = "https://signaturesi-neo1.vercel.app";
-              }, 1200);
-            }
-            setLoading(signupSubmitButton, false);
           }
 
         } catch (error) {
@@ -744,7 +742,7 @@
         }
       }
 
-      // Login Account Handler
+      // Login Account
       async function loginAccount(event) {
         event.preventDefault();
         if (isSubmitting) return;
