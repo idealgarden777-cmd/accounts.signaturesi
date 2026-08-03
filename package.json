@@ -1,5 +1,17 @@
 {
   "name": "signaturesi-accounts",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node test_auth_suite.js",
+    "test:standalone": "node test_auth_suite_standalone.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "argon2": "^0.41.1"
+  }
 }
