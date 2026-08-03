@@ -12,8 +12,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
-  <!-- Supabase JS SDK & Lucide Icons -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -390,7 +389,7 @@
               <div class="field-group">
                 <label class="field-label" for="signupPassword">Password</label>
                 <div class="input-wrapper">
-                  <input type="password" class="auth-input" id="signupPassword" placeholder="At least 8 characters" minlength="8" required>
+                  <input type="password" class="auth-input" id="signupPassword" placeholder="At least 10 characters" minlength="10" required>
                   <button type="button" class="password-toggle" id="signupPasswordToggle">
                     <i data-lucide="eye" size="16"></i>
                   </button>
@@ -399,7 +398,7 @@
 
               <div class="field-group">
                 <label class="field-label" for="confirmPassword">Confirm password</label>
-                <input type="password" class="auth-input" id="confirmPassword" placeholder="Re-enter password" minlength="8" required>
+                <input type="password" class="auth-input" id="confirmPassword" placeholder="Re-enter password" minlength="10" required>
               </div>
 
               <div class="card-actions">
@@ -468,11 +467,6 @@
   <script>
     (function () {
       "use strict";
-
-      // Updated Supabase URL and Publishable Key
-      const SUPABASE_URL = "https://ajglvfoqiyrrisuoxecu.supabase.co";
-      const SUPABASE_ANON_KEY = "sb_publishable_WnNBuQLAZzOqknbp1S3O3Q_MeCP5bim";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const themeButton = document.getElementById("themeButton");
       const topModeButton = document.getElementById("topModeButton");
@@ -560,7 +554,7 @@
       function updateSignupHeader() {
         const headers = {
           1: { eyebrow: "Step 1 of 3", title: "Choose your identity", subtitle: "Create a private ID for the Signaturesi ecosystem." },
-          2: { eyebrow: "Step 2 of 3", title: "Secure your account", subtitle: "Use a password with at least eight characters." },
+          2: { eyebrow: "Step 2 of 3", title: "Secure your account", subtitle: "Use a password with at least ten characters." },
           3: { eyebrow: "Step 3 of 3", title: "Confirm your Bean ID", subtitle: "Review your identity before creating the account." }
         };
         const content = headers[currentStep];
@@ -610,25 +604,34 @@
         setAvailability("checking", "Checking Bean ID…");
 
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('username', username)
-            .maybeSingle();
+          const response = await fetch(
+            `/api/auth/check-username?username=${encodeURIComponent(username)}`,
+            {
+              method: "GET",
+              credentials: "include"
+            }
+          );
+
+          const result = await response.json();
 
           if (requestId !== availabilityRequestId) return false;
 
-          if (data) {
-            setAvailability("error", `${username}@bean is already taken.`);
+          if (!response.ok) {
+            setAvailability("error", result.error || "Unable to check Bean ID.");
             return false;
           }
 
-          setAvailability("success", `${username}@bean is available.`);
-          return true;
-        } catch (err) {
+          if (result.available) {
+            setAvailability("success", `${username}@bean is available.`);
+            return true;
+          }
+
+          setAvailability("error", `${username}@bean is already taken.`);
+          return false;
+        } catch (error) {
           if (requestId !== availabilityRequestId) return false;
-          setAvailability("success", `${username}@bean is available.`);
-          return true;
+          setAvailability("error", "Unable to check Bean ID.");
+          return false;
         }
       }
 
@@ -674,8 +677,8 @@
         const password = signupPassword.value;
         const confirmation = confirmPassword.value;
 
-        if (password.length < 8) {
-          alert("Password must contain at least 8 characters.");
+        if (password.length < 10) {
+          alert("Password must contain at least 10 characters.");
           signupPassword.focus();
           return false;
         }
@@ -696,49 +699,46 @@
         topModeButton.disabled = active;
       }
 
-      function setAuthCookie(token) {
-        if (!token) return;
-        const domain = window.location.hostname.includes("signaturesi.com") ? ".signaturesi.com" : window.location.hostname;
-        document.cookie = `sb_access_token=${token}; path=/; domain=${domain}; max-age=604800; SameSite=Lax; Secure`;
-      }
-
       // Account Creation Handler
       async function createAccount(event) {
         event.preventDefault();
+
         if (isSubmitting || !validateStepTwo()) return;
 
         const username = normalizeUsername(signupUsername.value);
-        const email = `${username}@signaturesi.com`;
         const password = signupPassword.value;
 
         clearMessage(step3Message);
         setLoading(signupSubmitButton, true);
 
         try {
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { data: { username } }
+          const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              username,
+              password
+            })
           });
 
-          if (error) throw error;
+          const result = await response.json();
 
-          if (data.user) {
-            if (data.user.identities && data.user.identities.length === 0) {
-              showMessage(step3Message, `${username}@bean is already registered. Please log in above.`, "error");
-              setLoading(signupSubmitButton, false);
-              return;
-            }
-
-            if (data.session) {
-              setAuthCookie(data.session.access_token);
-            }
-
-            showMessage(step3Message, `${username}@bean created! Opening NEO…`, "success");
-            window.setTimeout(() => {
-              window.location.href = "https://signaturesi-neo1.vercel.app";
-            }, 1000);
+          if (!response.ok) {
+            throw new Error(result.error || "Unable to create Bean ID.");
           }
+
+          showMessage(
+            step3Message,
+            `${username}@bean created! Opening NEO…`,
+            "success"
+          );
+
+          window.setTimeout(() => {
+            window.location.href = "https://signaturesi-neo1.vercel.app";
+          }, 1000);
 
         } catch (error) {
           showMessage(step3Message, error, "error");
@@ -749,28 +749,40 @@
       // Login Account Handler
       async function loginAccount(event) {
         event.preventDefault();
+
         if (isSubmitting) return;
 
         const username = normalizeUsername(loginUsername.value);
-        const email = `${username}@signaturesi.com`;
         const password = loginPassword.value;
 
         clearMessage(loginMessage);
         setLoading(loginSubmitButton, true);
 
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              username,
+              password
+            })
           });
 
-          if (error) throw error;
+          const result = await response.json();
 
-          if (data.session) {
-            setAuthCookie(data.session.access_token);
+          if (!response.ok) {
+            throw new Error(result.error || "Unable to log in.");
           }
 
-          showMessage(loginMessage, "Login successful. Opening NEO…", "success");
+          showMessage(
+            loginMessage,
+            "Login successful. Opening NEO…",
+            "success"
+          );
+
           window.setTimeout(() => {
             window.location.href = "https://signaturesi-neo1.vercel.app";
           }, 800);
