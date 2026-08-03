@@ -24,6 +24,7 @@ export default async function handler(req, res) {
 
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
+
     return res.status(405).json({
       error: "Method not allowed"
     });
@@ -45,7 +46,8 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     if (error) {
-      console.error("Username check failed");
+      console.error("Bean ID check error:", error);
+
       return res.status(500).json({
         error: "Unable to check Bean ID"
       });
@@ -54,7 +56,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       available: !data
     });
-  } catch {
+  } catch (error) {
+    console.error("Bean ID check exception:", error);
+
     return res.status(500).json({
       error: "Unable to check Bean ID"
     });
