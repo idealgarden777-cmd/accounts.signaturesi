@@ -21,11 +21,19 @@ function normalizeUsername(value) {
     .replace(/@bean$/i, "");
 }
 
+function hashToken(token) {
+  return crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
+
     return res.status(405).json({
       error: "Method not allowed"
     });
@@ -55,6 +63,7 @@ export default async function handler(req, res) {
 
     if (existingError) {
       console.error("Existing user check failed:", existingError);
+
       return res.status(500).json({
         error: "Unable to create Bean ID"
       });
@@ -67,6 +76,7 @@ export default async function handler(req, res) {
     }
 
     const userId = crypto.randomUUID();
+
     const passwordHash = await argon2.hash(password, {
       type: argon2.argon2id
     });
@@ -83,6 +93,7 @@ export default async function handler(req, res) {
 
     if (userError) {
       console.error("Bean user insert failed:", userError);
+
       return res.status(500).json({
         error: "Unable to create Bean ID"
       });
@@ -108,11 +119,43 @@ export default async function handler(req, res) {
       });
     }
 
+    const rawToken = crypto.randomBytes(32).toString("base64url");
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { error: sessionError } = await supabase
+      .from("bean_sessions")
+      .insert({
+        user_id: userId,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        user_agent: String(req.headers["user-agent"] || "").slice(0, 500)
+      });
+
+    if (sessionError) {
+      console.error("Signup session insert failed:", sessionError);
+
+      return res.status(500).json({
+        error: "Account created, but automatic login failed"
+      });
+    }
+
+    const cookieName =
+      process.env.SESSION_COOKIE_NAME || "bean_session";
+
+    res.setHeader(
+      "Set-Cookie",
+      `${cookieName}=${rawToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+    );
+
     return res.status(201).json({
       success: true,
       user: {
         id: userId,
         username,
+        displayName: username,
         beanId: `${username}@bean`
       }
     });
