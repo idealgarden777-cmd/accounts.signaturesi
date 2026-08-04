@@ -34,19 +34,27 @@ function hashToken(token) {
 }
 
 export default async function handler(req, res) {
+  // ✅ CORS headers
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Access-Control-Allow-Origin", "https://neo.signaturesi.com");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
+  // ✅ Handle preflight OPTIONS
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(204).end();
+  }
+
+  // ✅ Only POST allowed
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-
+    res.setHeader("Allow", "POST, OPTIONS");
     return res.status(405).json({
       error: "Method not allowed"
     });
   }
 
-  const cookieName =
-    process.env.SESSION_COOKIE_NAME || "bean_session";
-
+  const cookieName = process.env.SESSION_COOKIE_NAME || "bean_session";
   const rawToken = getCookie(req, cookieName);
 
   try {
@@ -66,9 +74,10 @@ export default async function handler(req, res) {
       }
     }
 
+    // ✅ Clear cookie with domain
     res.setHeader(
       "Set-Cookie",
-      `${cookieName}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+      `${cookieName}=; Path=/; Domain=.signaturesi.com; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
     );
 
     return res.status(200).json({
@@ -77,9 +86,10 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Logout exception:", error);
 
+    // ✅ Even on error, clear cookie with domain
     res.setHeader(
       "Set-Cookie",
-      `${cookieName}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+      `${cookieName}=; Path=/; Domain=.signaturesi.com; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
     );
 
     return res.status(200).json({
