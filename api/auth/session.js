@@ -34,19 +34,27 @@ function hashToken(token) {
 }
 
 export default async function handler(req, res) {
+  // ✅ CORS headers
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Access-Control-Allow-Origin", "https://neo.signaturesi.com");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
+  // ✅ Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(204).end();
+  }
+
+  // ✅ Only GET allowed after OPTIONS
   if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-
+    res.setHeader("Allow", "GET, OPTIONS");
     return res.status(405).json({
       error: "Method not allowed"
     });
   }
 
-  const cookieName =
-    process.env.SESSION_COOKIE_NAME || "bean_session";
-
+  const cookieName = process.env.SESSION_COOKIE_NAME || "bean_session";
   const rawToken = getCookie(req, cookieName);
 
   if (!rawToken) {
@@ -66,7 +74,6 @@ export default async function handler(req, res) {
 
     if (sessionError) {
       console.error("Session lookup failed:", sessionError);
-
       return res.status(500).json({
         error: "Unable to verify session"
       });
@@ -90,7 +97,6 @@ export default async function handler(req, res) {
 
     if (userError) {
       console.error("Session user lookup failed:", userError);
-
       return res.status(500).json({
         error: "Unable to verify session"
       });
@@ -113,7 +119,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Session verification exception:", error);
-
     return res.status(500).json({
       error: "Unable to verify session"
     });
