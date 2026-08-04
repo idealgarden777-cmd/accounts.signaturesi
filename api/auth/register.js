@@ -1,3 +1,4 @@
+// ✅ CORRECT IMPORT: Entire scope is lowercase @supabase
 import { createClient } from "@supabase/supabase-js";
 import argon2 from "argon2";
 import crypto from "node:crypto";
@@ -33,7 +34,6 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-
     return res.status(405).json({
       error: "Method not allowed"
     });
@@ -63,7 +63,6 @@ export default async function handler(req, res) {
 
     if (existingError) {
       console.error("Existing user check failed:", existingError);
-
       return res.status(500).json({
         error: "Unable to create Bean ID"
       });
@@ -93,7 +92,6 @@ export default async function handler(req, res) {
 
     if (userError) {
       console.error("Bean user insert failed:", userError);
-
       return res.status(500).json({
         error: "Unable to create Bean ID"
       });
@@ -108,12 +106,7 @@ export default async function handler(req, res) {
 
     if (credentialError) {
       console.error("Credential insert failed:", credentialError);
-
-      await supabase
-        .from("bean_users")
-        .delete()
-        .eq("id", userId);
-
+      await supabase.from("bean_users").delete().eq("id", userId);
       return res.status(500).json({
         error: "Unable to create Bean ID"
       });
@@ -136,18 +129,16 @@ export default async function handler(req, res) {
 
     if (sessionError) {
       console.error("Signup session insert failed:", sessionError);
-
       return res.status(500).json({
         error: "Account created, but automatic login failed"
       });
     }
 
-    const cookieName =
-      process.env.SESSION_COOKIE_NAME || "bean_session";
+    const cookieName = process.env.SESSION_COOKIE_NAME || "bean_session";
 
     res.setHeader(
       "Set-Cookie",
-      `${cookieName}=${rawToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+      `${cookieName}=${rawToken}; Path=/; Domain=.signaturesi.com; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
     );
 
     return res.status(201).json({
@@ -161,7 +152,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Registration exception:", error);
-
     return res.status(500).json({
       error: "Unable to create Bean ID"
     });
