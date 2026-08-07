@@ -36,7 +36,7 @@ function hashToken(token) {
 export default async function handler(req, res) {
   // ✅ CORS headers
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Allow-Origin", "https://neo.signaturesi.com");
+  res.setHeader("Access-Control-Allow-Origin", "https://neyo.signaturesi.com");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
   // ✅ Handle preflight OPTIONS
