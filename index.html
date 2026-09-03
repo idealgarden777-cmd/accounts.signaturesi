@@ -1053,6 +1053,195 @@
             text-align: center;
         }
 
+
+
+        /* =========================================================
+           Returning user experience
+        ========================================================= */
+
+        .return-experience {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .return-experience.active {
+            display: block;
+            animation: panelEnter 220ms ease both;
+        }
+
+        .restore-stage {
+            min-height: 260px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+        }
+
+        .restore-visual {
+            position: relative;
+            width: 112px;
+            height: 112px;
+            margin: 0 auto 26px;
+        }
+
+        .restore-ring,
+        .restore-core,
+        .restore-dot {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .restore-ring {
+            inset: 7px;
+            border: 1px solid var(--border-strong);
+            animation: restoreSpin 2.4s linear infinite;
+        }
+
+        .restore-ring::before,
+        .restore-ring::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text);
+        }
+
+        .restore-ring::before {
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .restore-ring::after {
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.3;
+        }
+
+        .restore-core {
+            inset: 30px;
+            display: grid;
+            place-items: center;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+            animation: restorePulse 1.7s ease-in-out infinite;
+        }
+
+        .restore-core svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .restore-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--text-tertiary);
+            opacity: 0.5;
+        }
+
+        .restore-dot.one { top: 8px; right: 16px; animation: restoreFloat 1.8s ease-in-out infinite; }
+        .restore-dot.two { bottom: 15px; left: 8px; animation: restoreFloat 2s ease-in-out 120ms infinite; }
+        .restore-dot.three { top: 48px; left: 0; animation: restoreFloat 2.2s ease-in-out 220ms infinite; }
+
+        .restore-status {
+            min-height: 24px;
+            margin: 0;
+            color: var(--text);
+            font-size: 17px;
+            font-weight: 620;
+            letter-spacing: -0.02em;
+            transition: opacity 160ms ease, transform 160ms ease;
+        }
+
+        .restore-status.changing {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        .restore-caption {
+            margin: 8px 0 0;
+            color: var(--text-tertiary);
+            font-size: 11.5px;
+            line-height: 1.5;
+        }
+
+        .welcome-stage {
+            display: none;
+            text-align: center;
+        }
+
+        .welcome-stage.active {
+            display: block;
+            animation: welcomeEnter 320ms cubic-bezier(.2,.8,.2,1) both;
+        }
+
+        .welcome-avatar {
+            width: 76px;
+            height: 76px;
+            margin: 2px auto 18px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border-radius: 50%;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 650;
+            letter-spacing: -0.03em;
+            box-shadow: 0 10px 32px rgba(0,0,0,.07);
+        }
+
+        .welcome-avatar img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .welcome-title {
+            margin: 0;
+            color: var(--text);
+            font-size: 25px;
+            font-weight: 650;
+            line-height: 1.15;
+            letter-spacing: -0.035em;
+        }
+
+        .welcome-copy {
+            margin: 9px auto 0;
+            max-width: 290px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .welcome-stage .card-actions {
+            margin-top: 24px;
+        }
+
+        @keyframes restoreSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes restorePulse {
+            0%, 100% { transform: scale(0.96); opacity: 0.82; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes restoreFloat {
+            0%, 100% { transform: translateY(0); opacity: 0.35; }
+            50% { transform: translateY(-5px); opacity: 0.85; }
+        }
+
+        @keyframes welcomeEnter {
+            from { opacity: 0; transform: translateY(8px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+
         /* =========================================================
            Tablet
         ========================================================= */
@@ -1748,6 +1937,67 @@
                     </form>
 
 
+
+
+                    <!-- =================================================
+                         RETURNING USER EXPERIENCE
+                         Frontend-only. Auth/session contract is unchanged.
+                    ================================================== -->
+
+                    <section
+                        class="return-experience"
+                        id="returnExperience"
+                        aria-live="polite"
+                    >
+                        <div class="restore-stage" id="restoreStage">
+                            <div>
+                                <div class="restore-visual" aria-hidden="true">
+                                    <span class="restore-ring"></span>
+                                    <span class="restore-dot one"></span>
+                                    <span class="restore-dot two"></span>
+                                    <span class="restore-dot three"></span>
+                                    <span class="restore-core">
+                                        <i data-lucide="sparkles"></i>
+                                    </span>
+                                </div>
+
+                                <p class="restore-status" id="restoreStatus">
+                                    Bringing everything back…
+                                </p>
+
+                                <p class="restore-caption">
+                                    Reconnecting your Signaturesi experience.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="welcome-stage" id="welcomeStage">
+                            <div class="welcome-avatar" id="welcomeAvatar" aria-hidden="true">
+                                B
+                            </div>
+
+                            <h3 class="welcome-title" id="welcomeTitle">
+                                Welcome back
+                            </h3>
+
+                            <p class="welcome-copy">
+                                Everything is ready in NEO.
+                            </p>
+
+                            <div class="card-actions">
+                                <button
+                                    type="button"
+                                    class="primary-button"
+                                    id="continueToNeyo"
+                                >
+                                    <span>Continue to NEO</span>
+                                    <i data-lucide="arrow-right" size="16" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+
                     <p class="auth-footer">
                         By continuing, you accept Signaturesi Terms and Privacy.
                     </p>
@@ -1839,6 +2089,27 @@
 
             const loginSubmitButton =
                 document.getElementById("loginSubmitButton");
+
+            const returnExperience =
+                document.getElementById("returnExperience");
+
+            const restoreStage =
+                document.getElementById("restoreStage");
+
+            const restoreStatus =
+                document.getElementById("restoreStatus");
+
+            const welcomeStage =
+                document.getElementById("welcomeStage");
+
+            const welcomeAvatar =
+                document.getElementById("welcomeAvatar");
+
+            const welcomeTitle =
+                document.getElementById("welcomeTitle");
+
+            const continueToNeyo =
+                document.getElementById("continueToNeyo");
 
 
             /* =========================================================
@@ -2600,6 +2871,158 @@
 
 
             /* =========================================================
+               RETURNING USER EXPERIENCE
+
+               Frontend-only transition after successful login.
+            ========================================================= */
+
+            function getReturningUserProfile(result, username) {
+                const user =
+                    result && typeof result === "object"
+                        ? (result.user || result.profile || result.account || {})
+                        : {};
+
+                const displayName =
+                    user.display_name ||
+                    user.displayName ||
+                    user.name ||
+                    result?.display_name ||
+                    result?.displayName ||
+                    result?.name ||
+                    username;
+
+                const avatarUrl =
+                    user.avatar_url ||
+                    user.avatarUrl ||
+                    user.profile_image ||
+                    user.profileImage ||
+                    user.image ||
+                    result?.avatar_url ||
+                    result?.avatarUrl ||
+                    result?.profile_image ||
+                    result?.profileImage ||
+                    result?.image ||
+                    "";
+
+                return {
+                    displayName: String(displayName || username),
+                    avatarUrl: String(avatarUrl || "")
+                };
+            }
+
+
+            function getInitials(value) {
+                const clean = String(value || "")
+                    .trim()
+                    .replace(/@bean$/i, "");
+
+                if (!clean) {
+                    return "B";
+                }
+
+                const parts = clean
+                    .split(/[\s._-]+/)
+                    .filter(Boolean);
+
+                if (parts.length > 1) {
+                    return (parts[0][0] + parts[parts.length - 1][0])
+                        .toUpperCase();
+                }
+
+                return clean.slice(0, 2).toUpperCase();
+            }
+
+
+            function setWelcomeAvatar(profile) {
+                welcomeAvatar.replaceChildren();
+
+                if (profile.avatarUrl) {
+                    const image = document.createElement("img");
+                    image.src = profile.avatarUrl;
+                    image.alt = "";
+
+                    image.addEventListener(
+                        "error",
+                        function () {
+                            welcomeAvatar.replaceChildren();
+                            welcomeAvatar.textContent =
+                                getInitials(profile.displayName);
+                        },
+                        { once: true }
+                    );
+
+                    welcomeAvatar.appendChild(image);
+                    return;
+                }
+
+                welcomeAvatar.textContent =
+                    getInitials(profile.displayName);
+            }
+
+
+            function setRestoreStatus(text) {
+                restoreStatus.classList.add("changing");
+
+                window.setTimeout(function () {
+                    restoreStatus.textContent = text;
+                    restoreStatus.classList.remove("changing");
+                }, 150);
+            }
+
+
+            function showReturningExperience(result, username) {
+                const profile =
+                    getReturningUserProfile(result, username);
+
+                signupForm.style.display = "none";
+                loginForm.classList.remove("active");
+                stepIndicator.style.display = "none";
+                topModeButton.style.visibility = "hidden";
+
+                cardEyebrow.textContent = "Signed in securely";
+                authTitle.textContent = "Welcome back to NEO";
+                authSubtitle.textContent =
+                    "Your account is ready. We’re bringing your experience back.";
+
+                returnExperience.classList.add("active");
+                restoreStage.style.display = "grid";
+                welcomeStage.classList.remove("active");
+
+                restoreStatus.textContent =
+                    "Bringing everything back…";
+
+                setWelcomeAvatar(profile);
+                welcomeTitle.textContent =
+                    `Welcome back, ${profile.displayName}`;
+
+                refreshIcons();
+
+                const reduceMotion =
+                    window.matchMedia &&
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+                const firstDelay = reduceMotion ? 120 : 700;
+                const secondDelay = reduceMotion ? 240 : 1450;
+                const finishDelay = reduceMotion ? 360 : 2200;
+
+                window.setTimeout(function () {
+                    setRestoreStatus("Restoring your workspace…");
+                }, firstDelay);
+
+                window.setTimeout(function () {
+                    setRestoreStatus("Loading your preferences…");
+                }, secondDelay);
+
+                window.setTimeout(function () {
+                    restoreStage.style.display = "none";
+                    welcomeStage.classList.add("active");
+                    refreshIcons();
+                    continueToNeyo.focus();
+                }, finishDelay);
+            }
+
+
+            /* =========================================================
                LOGIN
 
                Backend contract intentionally unchanged.
@@ -2661,18 +3084,9 @@
                         );
                     }
 
-                    showMessage(
-                        loginMessage,
-                        "Login successful. Opening NEO…",
-                        "success"
-                    );
-
-                    window.setTimeout(
-                        function () {
-                            window.location.href =
-                                "https://neyo.signaturesi.com";
-                        },
-                        800
+                    showReturningExperience(
+                        result,
+                        username
                     );
 
                 } catch (error) {
@@ -2833,6 +3247,15 @@
                                 ""
                             )
                             .slice(0, 20);
+                }
+            );
+
+
+            continueToNeyo.addEventListener(
+                "click",
+                function () {
+                    window.location.href =
+                        "https://neyo.signaturesi.com";
                 }
             );
 
