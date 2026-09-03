@@ -19,6 +19,10 @@
         content="#ffffff"
     />
 
+    <!-- Public browser config only. Never place a service-role key here. -->
+    <meta name="supabase-url" content="" />
+    <meta name="supabase-publishable-key" content="" />
+
     <title>Bean ID — Signaturesi Account</title>
 
     <link
@@ -2961,6 +2965,77 @@
             }
 
 
+            async function fetchAvatarFromSupabase(userId) {
+                if (!userId) {
+                    return "";
+                }
+
+                const urlMeta =
+                    document.querySelector('meta[name="supabase-url"]');
+
+                const keyMeta =
+                    document.querySelector('meta[name="supabase-publishable-key"]');
+
+                const supabaseUrl =
+                    String(urlMeta?.content || "")
+                        .trim()
+                        .replace(/\/$/, "");
+
+                const publishableKey =
+                    String(keyMeta?.content || "").trim();
+
+                if (!supabaseUrl || !publishableKey) {
+                    return "";
+                }
+
+                const headers = {
+                    apikey: publishableKey,
+                    Authorization: `Bearer ${publishableKey}`,
+                    Accept: "application/json"
+                };
+
+                async function readBy(column) {
+                    const endpoint =
+                        `${supabaseUrl}/rest/v1/bean_profiles` +
+                        `?${column}=eq.${encodeURIComponent(userId)}` +
+                        `&select=avatar_url&limit=1`;
+
+                    const response = await fetch(endpoint, {
+                        method: "GET",
+                        headers,
+                        cache: "no-store"
+                    });
+
+                    if (!response.ok) {
+                        return "";
+                    }
+
+                    const rows = await response.json();
+
+                    if (!Array.isArray(rows) || rows.length === 0) {
+                        return "";
+                    }
+
+                    return String(rows[0]?.avatar_url || "").trim();
+                }
+
+                try {
+                    return (
+                        await readBy("user_id") ||
+                        await readBy("id") ||
+                        ""
+                    );
+                } catch (error) {
+                    console.warn(
+                        "Avatar preview lookup failed:",
+                        error
+                    );
+
+                    return "";
+                }
+            }
+
+
             function getInitials(value) {
                 const clean = String(value || "")
                     .trim()
@@ -3042,6 +3117,26 @@
                     "Bringing everything back…";
 
                 setWelcomeAvatar(profile);
+
+                const userId =
+                    result?.user?.id ||
+                    result?.profile?.id ||
+                    result?.account?.id ||
+                    result?.id ||
+                    "";
+
+                if (!profile.avatarUrl && userId) {
+                    fetchAvatarFromSupabase(userId)
+                        .then(function (avatarUrl) {
+                            if (avatarUrl) {
+                                setWelcomeAvatar({
+                                    ...profile,
+                                    avatarUrl
+                                });
+                            }
+                        });
+                }
+
                 welcomeTitle.textContent =
                     `Welcome back, ${profile.displayName}`;
 
