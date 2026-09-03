@@ -10,7 +10,7 @@
 
     <meta
         name="description"
-        content="Create your secure Bean ID and access NEO."
+        content="Create your secure Bean ID and access NEYO."
     />
 
     <meta
@@ -1533,7 +1533,7 @@
                 </h1>
 
                 <p class="intro-description">
-                    Create your Bean ID once and use it across NEO,
+                    Create your Bean ID once and use it across NEYO,
                     Bean and future Signaturesi products.
                 </p>
 
@@ -1785,7 +1785,7 @@
                                 </div>
 
                                 <p class="review-copy">
-                                    This identity will connect your NEO
+                                    This identity will connect your NEYO
                                     and Bean ecosystem account.
                                 </p>
 
@@ -1923,7 +1923,7 @@
                                 class="primary-button"
                                 id="loginSubmitButton"
                             >
-                                <span>Enter NEO</span>
+                                <span>Enter NEYO</span>
 
                                 <i
                                     data-lucide="arrow-right"
@@ -1981,7 +1981,7 @@
                             </h3>
 
                             <p class="welcome-copy">
-                                Everything is ready in NEO.
+                                Everything is ready in NEYO.
                             </p>
 
                             <div class="card-actions">
@@ -1990,7 +1990,7 @@
                                     class="primary-button"
                                     id="continueToNeyo"
                                 >
-                                    <span>Continue to NEO</span>
+                                    <span>Continue to NEYO</span>
                                     <i data-lucide="arrow-right" size="16" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -2651,7 +2651,7 @@
                     "Welcome back";
 
                 authSubtitle.textContent =
-                    "Enter your Bean ID to continue to NEO.";
+                    "Enter your Bean ID to continue to NEYO.";
 
                 window.setTimeout(
                     function () {
@@ -2843,7 +2843,7 @@
 
                     showMessage(
                         step3Message,
-                        `${username}@bean created! Opening NEO…`,
+                        `${username}@bean created! Opening NEYO…`,
                         "success"
                     );
 
@@ -2882,25 +2882,75 @@
                         ? (result.user || result.profile || result.account || {})
                         : {};
 
+                const metadata =
+                    user.user_metadata ||
+                    user.userMetadata ||
+                    user.metadata ||
+                    result?.user_metadata ||
+                    result?.userMetadata ||
+                    result?.metadata ||
+                    {};
+
+                const nestedProfile =
+                    user.profile ||
+                    metadata.profile ||
+                    result?.profile ||
+                    {};
+
                 const displayName =
+                    nestedProfile.display_name ||
+                    nestedProfile.displayName ||
+                    nestedProfile.full_name ||
+                    nestedProfile.fullName ||
+                    nestedProfile.name ||
+                    metadata.display_name ||
+                    metadata.displayName ||
+                    metadata.full_name ||
+                    metadata.fullName ||
+                    metadata.name ||
                     user.display_name ||
                     user.displayName ||
+                    user.full_name ||
+                    user.fullName ||
                     user.name ||
                     result?.display_name ||
                     result?.displayName ||
+                    result?.full_name ||
+                    result?.fullName ||
                     result?.name ||
                     username;
 
                 const avatarUrl =
+                    nestedProfile.avatar_url ||
+                    nestedProfile.avatarUrl ||
+                    nestedProfile.profile_image ||
+                    nestedProfile.profileImage ||
+                    nestedProfile.image_url ||
+                    nestedProfile.imageUrl ||
+                    nestedProfile.image ||
+                    metadata.avatar_url ||
+                    metadata.avatarUrl ||
+                    metadata.picture ||
+                    metadata.profile_image ||
+                    metadata.profileImage ||
+                    metadata.image_url ||
+                    metadata.imageUrl ||
+                    metadata.image ||
                     user.avatar_url ||
                     user.avatarUrl ||
+                    user.picture ||
                     user.profile_image ||
                     user.profileImage ||
+                    user.image_url ||
+                    user.imageUrl ||
                     user.image ||
                     result?.avatar_url ||
                     result?.avatarUrl ||
+                    result?.picture ||
                     result?.profile_image ||
                     result?.profileImage ||
+                    result?.image_url ||
+                    result?.imageUrl ||
                     result?.image ||
                     "";
 
@@ -2980,7 +3030,7 @@
                 topModeButton.style.visibility = "hidden";
 
                 cardEyebrow.textContent = "Signed in securely";
-                authTitle.textContent = "Welcome back to NEO";
+                authTitle.textContent = "Welcome back to NEYO";
                 authSubtitle.textContent =
                     "Your account is ready. We’re bringing your experience back.";
 
