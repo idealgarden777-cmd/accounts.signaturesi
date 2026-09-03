@@ -2882,85 +2882,27 @@
 
             function getReturningUserProfile(result, username) {
                 const user =
-                    result && typeof result === "object"
-                        ? (result.user || result.profile || result.account || {})
+                    result && typeof result.user === "object"
+                        ? result.user
                         : {};
 
-                const metadata =
-                    user.user_metadata ||
-                    user.userMetadata ||
-                    user.metadata ||
-                    result?.user_metadata ||
-                    result?.userMetadata ||
-                    result?.metadata ||
-                    {};
-
-                const nestedProfile =
-                    user.profile ||
-                    metadata.profile ||
-                    result?.profile ||
-                    {};
-
                 const displayName =
-                    nestedProfile.display_name ||
-                    nestedProfile.displayName ||
-                    nestedProfile.full_name ||
-                    nestedProfile.fullName ||
-                    nestedProfile.name ||
-                    metadata.display_name ||
-                    metadata.displayName ||
-                    metadata.full_name ||
-                    metadata.fullName ||
-                    metadata.name ||
-                    user.display_name ||
                     user.displayName ||
-                    user.full_name ||
-                    user.fullName ||
-                    user.name ||
-                    result?.display_name ||
+                    user.display_name ||
+                    user.username ||
                     result?.displayName ||
-                    result?.full_name ||
-                    result?.fullName ||
-                    result?.name ||
+                    result?.display_name ||
+                    result?.username ||
                     username;
 
                 const avatarUrl =
-                    nestedProfile.avatar_url ||
-                    nestedProfile.avatarUrl ||
-                    nestedProfile.profile_image ||
-                    nestedProfile.profileImage ||
-                    nestedProfile.image_url ||
-                    nestedProfile.imageUrl ||
-                    nestedProfile.image ||
-                    metadata.avatar_url ||
-                    metadata.avatarUrl ||
-                    metadata.picture ||
-                    metadata.profile_image ||
-                    metadata.profileImage ||
-                    metadata.image_url ||
-                    metadata.imageUrl ||
-                    metadata.image ||
                     user.avatar_url ||
-                    user.avatarUrl ||
-                    user.picture ||
-                    user.profile_image ||
-                    user.profileImage ||
-                    user.image_url ||
-                    user.imageUrl ||
-                    user.image ||
                     result?.avatar_url ||
-                    result?.avatarUrl ||
-                    result?.picture ||
-                    result?.profile_image ||
-                    result?.profileImage ||
-                    result?.image_url ||
-                    result?.imageUrl ||
-                    result?.image ||
                     "";
 
                 return {
                     displayName: String(displayName || username),
-                    avatarUrl: String(avatarUrl || "")
+                    avatarUrl: String(avatarUrl || "").trim()
                 };
             }
 
