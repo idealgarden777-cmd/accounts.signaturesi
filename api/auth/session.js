@@ -12,115 +12,389 @@ const supabase = createClient(
   }
 );
 
-function getCookie(req, name) {
-  const cookies = String(req.headers.cookie || "").split(";");
+
+/* =========================================================
+   ALLOWED APPLICATION ORIGINS
+   ========================================================= */
+
+const ALLOWED_ORIGINS = new Set([
+  "https://uasset.signaturesi.com",
+  "https://uassets888.vercel.app",
+  "https://neyo.signaturesi.com",
+  "https://accounts.signaturesi.com",
+  "http://localhost:5173",
+  "http://localhost:4173"
+]);
+
+
+/* =========================================================
+   CORS
+   ========================================================= */
+
+function setCors(req, res) {
+  const origin =
+    req.headers.origin;
+
+  if (!origin) {
+    return true;
+  }
+
+  if (
+    !ALLOWED_ORIGINS.has(
+      origin
+    )
+  ) {
+    res.status(403).json({
+      error:
+        "Origin not allowed"
+    });
+
+    return false;
+  }
+
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    origin
+  );
+
+  res.setHeader(
+    "Vary",
+    "Origin"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Credentials",
+    "true"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
+
+  return true;
+}
+
+
+/* =========================================================
+   COOKIE READER
+   ========================================================= */
+
+function getCookie(
+  req,
+  name
+) {
+  const cookies =
+    String(
+      req.headers.cookie || ""
+    ).split(";");
 
   for (const cookie of cookies) {
-    const [key, ...valueParts] = cookie.trim().split("=");
+    const [
+      key,
+      ...valueParts
+    ] =
+      cookie
+        .trim()
+        .split("=");
 
-    if (key === name) {
-      return decodeURIComponent(valueParts.join("="));
+    if (
+      key === name
+    ) {
+      return decodeURIComponent(
+        valueParts.join("=")
+      );
     }
   }
 
   return null;
 }
 
-function hashToken(token) {
+
+/* =========================================================
+   TOKEN HASH
+   ========================================================= */
+
+function hashToken(
+  token
+) {
   return crypto
     .createHash("sha256")
     .update(token)
     .digest("hex");
 }
 
-export default async function handler(req, res) {
-  // ✅ CORS headers
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Allow-Origin", "https://neyo.signaturesi.com");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  // ✅ Handle preflight OPTIONS request
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    return res.status(204).end();
+/* =========================================================
+   SESSION HANDLER
+   ========================================================= */
+
+export default async function handler(
+  req,
+  res
+) {
+
+  res.setHeader(
+    "Cache-Control",
+    "no-store"
+  );
+
+
+  /* =======================================================
+     CORS
+     ======================================================= */
+
+  if (
+    !setCors(
+      req,
+      res
+    )
+  ) {
+    return;
   }
 
-  // ✅ Only GET allowed after OPTIONS
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET, OPTIONS");
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
+
+  /* =======================================================
+     PREFLIGHT
+     ======================================================= */
+
+  if (
+    req.method ===
+    "OPTIONS"
+  ) {
+
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, OPTIONS"
+    );
+
+    return res
+      .status(204)
+      .end();
   }
 
-  const cookieName = process.env.SESSION_COOKIE_NAME || "bean_session";
-  const rawToken = getCookie(req, cookieName);
+
+  /* =======================================================
+     METHOD CHECK
+     ======================================================= */
+
+  if (
+    req.method !==
+    "GET"
+  ) {
+
+    res.setHeader(
+      "Allow",
+      "GET, OPTIONS"
+    );
+
+    return res
+      .status(405)
+      .json({
+        error:
+          "Method not allowed"
+      });
+  }
+
+
+  /* =======================================================
+     COOKIE
+     ======================================================= */
+
+  const cookieName =
+    process.env.SESSION_COOKIE_NAME ||
+    "bean_session";
+
+  const rawToken =
+    getCookie(
+      req,
+      cookieName
+    );
+
+
+  /* =======================================================
+     NO SESSION
+     ======================================================= */
 
   if (!rawToken) {
-    return res.status(200).json({
-      authenticated: false
-    });
+    return res
+      .status(200)
+      .json({
+        authenticated:
+          false
+      });
   }
 
+
+  /* =======================================================
+     VERIFY SESSION
+     ======================================================= */
+
   try {
-    const tokenHash = hashToken(rawToken);
 
-    const { data: session, error: sessionError } = await supabase
-      .from("bean_sessions")
-      .select("user_id, expires_at, revoked_at")
-      .eq("token_hash", tokenHash)
-      .maybeSingle();
+    const tokenHash =
+      hashToken(
+        rawToken
+      );
 
-    if (sessionError) {
-      console.error("Session lookup failed:", sessionError);
-      return res.status(500).json({
-        error: "Unable to verify session"
-      });
+
+    const {
+      data: session,
+      error: sessionError
+    } =
+      await supabase
+        .from(
+          "bean_sessions"
+        )
+        .select(
+          "user_id, expires_at, revoked_at"
+        )
+        .eq(
+          "token_hash",
+          tokenHash
+        )
+        .maybeSingle();
+
+
+    if (
+      sessionError
+    ) {
+
+      console.error(
+        "Session lookup failed:",
+        sessionError
+      );
+
+      return res
+        .status(500)
+        .json({
+          error:
+            "Unable to verify session"
+        });
     }
+
+
+    /* =====================================================
+       INVALID / EXPIRED / REVOKED
+       ===================================================== */
 
     if (
       !session ||
       session.revoked_at ||
-      new Date(session.expires_at).getTime() <= Date.now()
+      new Date(
+        session.expires_at
+      ).getTime() <=
+        Date.now()
     ) {
-      return res.status(200).json({
-        authenticated: false
-      });
+
+      return res
+        .status(200)
+        .json({
+          authenticated:
+            false
+        });
     }
 
-    const { data: user, error: userError } = await supabase
-      .from("bean_users")
-      .select("id, username, display_name, status")
-      .eq("id", session.user_id)
-      .maybeSingle();
 
-    if (userError) {
-      console.error("Session user lookup failed:", userError);
-      return res.status(500).json({
-        error: "Unable to verify session"
-      });
+    /* =====================================================
+       USER
+       ===================================================== */
+
+    const {
+      data: user,
+      error: userError
+    } =
+      await supabase
+        .from(
+          "bean_users"
+        )
+        .select(
+          "id, username, display_name, status"
+        )
+        .eq(
+          "id",
+          session.user_id
+        )
+        .maybeSingle();
+
+
+    if (
+      userError
+    ) {
+
+      console.error(
+        "Session user lookup failed:",
+        userError
+      );
+
+      return res
+        .status(500)
+        .json({
+          error:
+            "Unable to verify session"
+        });
     }
 
-    if (!user || user.status !== "active") {
-      return res.status(200).json({
-        authenticated: false
-      });
+
+    /* =====================================================
+       USER NOT ACTIVE
+       ===================================================== */
+
+    if (
+      !user ||
+      user.status !==
+        "active"
+    ) {
+
+      return res
+        .status(200)
+        .json({
+          authenticated:
+            false
+        });
     }
 
-    return res.status(200).json({
-      authenticated: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        displayName: user.display_name,
-        beanId: `${user.username}@bean`
-      }
-    });
+
+    /* =====================================================
+       AUTHENTICATED RESPONSE
+       ===================================================== */
+
+    return res
+      .status(200)
+      .json({
+
+        authenticated:
+          true,
+
+        user: {
+
+          id:
+            user.id,
+
+          username:
+            user.username,
+
+          displayName:
+            user.display_name,
+
+          beanId:
+            `${user.username}@bean`
+        }
+
+      });
+
   } catch (error) {
-    console.error("Session verification exception:", error);
-    return res.status(500).json({
-      error: "Unable to verify session"
-    });
+
+    console.error(
+      "Session verification exception:",
+      error
+    );
+
+    return res
+      .status(500)
+      .json({
+        error:
+          "Unable to verify session"
+      });
   }
 }
