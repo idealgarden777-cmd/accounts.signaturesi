@@ -10,6 +10,7 @@
 
     <meta
         name="description"
+        id="metaDescription"
         content="Create your secure Bean ID and access NEYO."
     />
 
@@ -23,7 +24,7 @@
     <meta name="supabase-url" content="" />
     <meta name="supabase-publishable-key" content="" />
 
-    <title>Bean ID — Signaturesi Account</title>
+    <title id="pageTitle">Bean ID — Signaturesi Account</title>
 
     <link
         rel="icon"
@@ -1611,7 +1612,8 @@
                 </h1>
 
                 <p class="intro-description">
-                    Create your Bean ID once and use it across NEYO,
+                    Create your Bean ID once and use it across
+                    <span id="introProductName">NEYO</span>,
                     Bean and future Signaturesi products.
                 </p>
 
@@ -1864,7 +1866,8 @@
                                 </div>
 
                                 <p class="review-copy">
-                                    This identity will connect your NEYO
+                                    This identity will connect your
+                                    <span id="reviewProductName">NEYO</span>
                                     and Bean ecosystem account.
                                 </p>
 
@@ -2003,7 +2006,9 @@
                                 class="primary-button"
                                 id="loginSubmitButton"
                             >
-                                <span>Enter NEYO</span>
+                                <span id="loginProductLabel">
+                                    Enter NEYO
+                                </span>
 
                                 <i
                                     data-lucide="arrow-right"
@@ -2060,7 +2065,10 @@
                                 Welcome back
                             </h3>
 
-                            <p class="welcome-copy">
+                            <p
+                                class="welcome-copy"
+                                id="welcomeCopy"
+                            >
                                 Everything is ready in NEYO.
                             </p>
 
@@ -2070,7 +2078,9 @@
                                     class="primary-button"
                                     id="continueToNeyo"
                                 >
-                                    <span>Continue to NEYO</span>
+                                    <span id="continueProductLabel">
+                                        Continue to NEYO
+                                    </span>
                                     <i data-lucide="arrow-right" size="16" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -2094,6 +2104,31 @@
     <script>
         (function () {
             "use strict";
+
+            /* =========================================================
+               APPLICATION BRANDING
+               ========================================================= */
+
+            const urlParams =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            const ACTIVE_APP =
+                urlParams.get("app") === "uasset"
+                    ? "uasset"
+                    : "neyo";
+
+            const PRODUCT_NAME =
+                ACTIVE_APP === "uasset"
+                    ? "UAsset"
+                    : "NEYO";
+
+            const PRODUCT_URL =
+                ACTIVE_APP === "uasset"
+                    ? "https://uasset.signaturesi.com"
+                    : "https://neyo.signaturesi.com";
+
 
             /* =========================================================
                Elements
@@ -2190,6 +2225,89 @@
 
             const continueToNeyo =
                 document.getElementById("continueToNeyo");
+
+
+            const metaDescription =
+                document.getElementById(
+                    "metaDescription"
+                );
+
+            const pageTitle =
+                document.getElementById(
+                    "pageTitle"
+                );
+
+            const introProductName =
+                document.getElementById(
+                    "introProductName"
+                );
+
+            const loginProductLabel =
+                document.getElementById(
+                    "loginProductLabel"
+                );
+
+            const welcomeCopy =
+                document.getElementById(
+                    "welcomeCopy"
+                );
+
+            const continueProductLabel =
+                document.getElementById(
+                    "continueProductLabel"
+                );
+
+            const reviewProductName =
+                document.getElementById(
+                    "reviewProductName"
+                );
+
+
+            /* =========================================================
+               Application branding
+            ========================================================= */
+
+            function applyApplicationBranding() {
+
+                if (metaDescription) {
+                    metaDescription.setAttribute(
+                        "content",
+                        `Create your secure Bean ID and access ${PRODUCT_NAME}.`
+                    );
+                }
+
+                if (pageTitle) {
+                    pageTitle.textContent =
+                        `Bean ID — ${PRODUCT_NAME} Account`;
+                }
+
+                if (introProductName) {
+                    introProductName.textContent =
+                        PRODUCT_NAME;
+                }
+
+                if (loginProductLabel) {
+                    loginProductLabel.textContent =
+                        `Enter ${PRODUCT_NAME}`;
+                }
+
+                if (welcomeCopy) {
+                    welcomeCopy.textContent =
+                        `Everything is ready in ${PRODUCT_NAME}.`;
+                }
+
+                if (continueProductLabel) {
+                    continueProductLabel.textContent =
+                        `Continue to ${PRODUCT_NAME}`;
+                }
+
+                if (reviewProductName) {
+                    reviewProductName.textContent =
+                        PRODUCT_NAME;
+                }
+            }
+
+            applyApplicationBranding();
 
 
             /* =========================================================
@@ -2742,7 +2860,7 @@
                     "Welcome back";
 
                 authSubtitle.textContent =
-                    "Enter your Bean ID to continue to NEYO.";
+                    `Enter your Bean ID to continue to ${PRODUCT_NAME}.`;
 
                 window.setTimeout(
                     function () {
@@ -2934,14 +3052,14 @@
 
                     showMessage(
                         step3Message,
-                        `${username}@bean created! Opening NEYO…`,
+                        `${username}@bean created! Opening ${PRODUCT_NAME}…`,
                         "success"
                     );
 
                     window.setTimeout(
                         function () {
                             window.location.href =
-                                "https://neyo.signaturesi.com";
+                                PRODUCT_URL;
                         },
                         1000
                     );
@@ -3134,7 +3252,8 @@
                 topModeButton.style.visibility = "hidden";
 
                 cardEyebrow.textContent = "Signed in securely";
-                authTitle.textContent = "Welcome back to NEYO";
+                authTitle.textContent =
+                    `Welcome back to ${PRODUCT_NAME}`;
                 authSubtitle.textContent =
                     "Your account is ready. We're bringing your experience back.";
 
@@ -3636,7 +3755,7 @@
                 "click",
                 function () {
                     window.location.href =
-                        "https://neyo.signaturesi.com";
+                        PRODUCT_URL;
                 }
             );
 
