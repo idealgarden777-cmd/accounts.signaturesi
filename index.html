@@ -3803,8 +3803,13 @@
 
                 showStep(1);
 
+                const requestedMode =
+                    urlParams.get("mode");
+
                 setMode(
-                    "signup"
+                    requestedMode === "login"
+                        ? "login"
+                        : "signup"
                 );
 
                 // Setup tooltips after DOM is ready
